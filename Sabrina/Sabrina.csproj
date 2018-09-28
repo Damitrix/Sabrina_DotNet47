@@ -1,0 +1,226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D3ABE589-C438-4FB0-81B7-63759E97F262}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sabrina</RootNamespace>
+    <AssemblyName>Sabrina</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DSharpPlus, Version=4.0.0.531, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\DSharpPlus.4.0.0-nightly-00531\lib\net47\DSharpPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="DSharpPlus.CommandsNext, Version=3.0.176.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\HSNXT.DSharpPlus.CommandsNext.Extended.3.0.176\lib\netstandard2.0\DSharpPlus.CommandsNext.dll</HintPath>
+    </Reference>
+    <Reference Include="DSharpPlus.Interactivity, Version=4.0.0.531, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\DSharpPlus.Interactivity.4.0.0-nightly-00531\lib\net47\DSharpPlus.Interactivity.dll</HintPath>
+    </Reference>
+    <Reference Include="DSharpPlus.VoiceNext, Version=4.0.0.531, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\DSharpPlus.VoiceNext.4.0.0-nightly-00531\lib\net47\DSharpPlus.VoiceNext.dll</HintPath>
+    </Reference>
+    <Reference Include="HSNXT.DSharpPlus.Extended, Version=3.0.176.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\HSNXT.DSharpPlus.Extended.3.0.176\lib\net47\HSNXT.DSharpPlus.Extended.dll</HintPath>
+    </Reference>
+    <Reference Include="HSNXT.DSharpPlus.Extended.Emoji, Version=3.0.176.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\HSNXT.DSharpPlus.Extended.Emoji.3.0.176\lib\net47\HSNXT.DSharpPlus.Extended.Emoji.dll</HintPath>
+    </Reference>
+    <Reference Include="HSNXT.DSharpPlus.ModernEmbedBuilder, Version=3.0.176.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\HSNXT.DSharpPlus.ModernEmbedBuilder.3.0.176\lib\net47\HSNXT.DSharpPlus.ModernEmbedBuilder.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.8.8.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>packages\HtmlAgilityPack.1.8.8\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=2.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Emzi0767.Microsoft.DependencyInjection.2.0.0\lib\net47\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Emzi0767.Microsoft.DependencyInjection.Abstractions.2.0.0\lib\net47\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Diagnostics.Contracts" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO">
+      <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Net.Http.4.3.3\lib\net46\System.Net.Http.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime">
+      <HintPath>..\packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices">
+      <HintPath>..\packages\System.Runtime.InteropServices.4.3.0\lib\net463\System.Runtime.InteropServices.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Security.Cryptography.X509Certificates.4.3.2\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bots\TumblrBot.cs" />
+    <Compile Include="Commands\Edges.cs" />
+    <Compile Include="Commands\Feet.cs" />
+    <Compile Include="Commands\Game.cs" />
+    <Compile Include="Commands\Dungeon.cs" />
+    <Compile Include="Commands\Information.cs" />
+    <Compile Include="Commands\KinkList\KinkList.cs" />
+    <Compile Include="Commands\Moderator.cs" />
+    <Compile Include="Commands\OrgasmWheel.cs" />
+    <Compile Include="Commands\Save-Instructions.cs" />
+    <Compile Include="Commands\Settings.cs" />
+    <Compile Include="Dungeon\Rooms\Room.cs" />
+    <Compile Include="Dungeon\Rooms\Task\Boss\Boss.cs" />
+    <Compile Include="Dungeon\Rooms\Task\LesserMob\LesserMob.cs" />
+    <Compile Include="Dungeon\Rooms\Task\LesserMob\SimpleEdgeTask.cs" />
+    <Compile Include="Dungeon\Rooms\Task\LesserMob\SimpleStrokeTask.cs" />
+    <Compile Include="Dungeon\Rooms\Task\Task.cs" />
+    <Compile Include="Entities\Content.cs" />
+    <Compile Include="Entities\Dependencies.cs" />
+    <Compile Include="Dungeon\Dungeon.cs" />
+    <Compile Include="Dungeon\GameBalance.cs" />
+    <Compile Include="Entities\Helpers.cs" />
+    <Compile Include="Entities\MessagePicture.cs" />
+    <Compile Include="Entities\Persistent\Link.cs" />
+    <Compile Include="Entities\ReflectiveEnumerator.cs" />
+    <Compile Include="Entities\Tumblr.cs" />
+    <Compile Include="Entities\WheelOutcomes\Ban.cs" />
+    <Compile Include="Entities\WheelOutcomes\Content.cs" />
+    <Compile Include="Entities\WheelOutcomes\Edge.cs" />
+    <Compile Include="Entities\WheelOutcomes\NoOrgasm.cs" />
+    <Compile Include="Entities\Persistent\WheelOutcome.cs" />
+    <Compile Include="Entities\StartTimes.cs" />
+    <Compile Include="Entities\TimeResolver.cs" />
+    <Compile Include="Bots\PornhubBot.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dungeon\Rooms\Finish\" />
+    <Folder Include="Dungeon\Rooms\Loot\" />
+    <Folder Include="Dungeon\Rooms\Start\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Commands\KinkList\KinkList.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="Commands\KinkList\KinkListCode.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TableObjects\TableObjects.csproj">
+      <Project>{eb1adc60-2138-4b18-9dab-d9e149ed6df2}</Project>
+      <Name>TableObjects</Name>
+    </ProjectReference>
+    <ProjectReference Include="Configuration\Configuration.csproj">
+      <Project>{7cf602cc-4fee-4ee3-bd6e-3b7decbc59e8}</Project>
+      <Name>Configuration</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
