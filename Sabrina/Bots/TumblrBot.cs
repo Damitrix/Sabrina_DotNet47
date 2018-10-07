@@ -7,6 +7,8 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Timers;
+
 namespace Sabrina.Bots
 {
     using System;
@@ -36,6 +38,8 @@ namespace Sabrina.Bots
     /// </summary>
     internal class TumblrBot
     {
+        private Timer postTimer;
+
         /// <summary>
         /// The texts to choose from randomly to post.
         /// </summary>
@@ -320,40 +324,29 @@ namespace Sabrina.Bots
             Justification = "Reviewed. Suppression is OK here.")]
         private async Task Run()
         {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var lastPost = Tables.Discord.TumblrPost.LastPost();
 
-            var isParseable = DateTime.TryParse(config.AppSettings.Settings["LastTumblrPost"].Value, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime val);
-
-            if (!isParseable || config.AppSettings.Settings["LastTumblrPost"] == null
-                || config.AppSettings.Settings["LastTumblrPost"].Value == "0")
+            if (lastPost?.LastPosted == null || DateTime.Now > lastPost.LastPosted.Value + TimeSpan.FromHours(1))
             {
-                config.AppSettings.Settings["LastTumblrPost"].Value =
-                    DateTime.Now.ToString(CultureInfo.InvariantCulture);
-                config.Save();
+                await PostRandom(this.client);
             }
-
-            while (!this.Exit)
+            else
             {
-                string lastSavedTime = config.AppSettings.Settings["LastTumblrPost"].Value;
-
-                while (DateTime.Parse(lastSavedTime, CultureInfo.InvariantCulture) > DateTime.Now.AddHours(-1))
-                {
-                    await Task.Delay(60000);
-                }
-
-                try
-                {
-                    await PostRandom(this.client);
-                    config.AppSettings.Settings["LastTumblrPost"].Value =
-                        DateTime.Now.ToString(CultureInfo.InvariantCulture);
-                    config.Save();
-                }
-                catch (Exception e)
-                {
-                    Console.Write(e);
-                    await Task.Delay(60000);
-                }
+                await Task.Delay(DateTime.Now - lastPost.LastPosted.Value);
+                await PostRandom(this.client);
             }
+            
+            postTimer = new Timer(TimeSpan.FromHours(1).TotalMilliseconds)
+            {
+                AutoReset = true
+            };
+            postTimer.Elapsed += PostTimer_Elapsed;
+            postTimer.Start();
+        }
+
+        private async void PostTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            await PostRandom(this.client);
         }
 
         /// <summary>

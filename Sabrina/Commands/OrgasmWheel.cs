@@ -360,6 +360,16 @@ namespace Sabrina.Commands
                 }
             }
 
+            if (user.DenialTime == null)
+            {
+                user.DenialTime = DateTime.Now;
+            }
+
+            if (user.LockTime == null)
+            { 
+                user.LockTime = DateTime.Now;
+            }
+
             if (user.DenialTime < DateTime.Now)
             {
                 user.DenialTime = DateTime.Now;

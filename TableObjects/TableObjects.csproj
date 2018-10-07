@@ -71,6 +71,12 @@
   <ItemGroup>
     <Compile Include="Tables\Discord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tables\Discord\Message.cs" />
+    <Compile Include="Tables\Discord\SlaveReport.cs" />
+    <Compile Include="Tables\Discord\TumblrPost.cs" />
+    <Compile Include="Tables\Discord\User.cs" />
+    <Compile Include="Tables\Discord\UserSetting.cs" />
+    <Compile Include="Tables\Discord\Wheelchance.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
