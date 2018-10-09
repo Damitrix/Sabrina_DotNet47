@@ -328,7 +328,7 @@ namespace Sabrina.Bots
         {
             var lastPost = Tables.Discord.TumblrPost.LastPost();
 
-            if (lastPost?.LastPosted == null || DateTime.Now > lastPost.LastPosted.Value + TimeSpan.FromSeconds(1))
+            if (lastPost?.LastPosted == null || DateTime.Now > lastPost.LastPosted.Value + TimeSpan.FromHours(1))
             {
                 await PostRandom(this.client);
             }
@@ -338,7 +338,7 @@ namespace Sabrina.Bots
                 await PostRandom(this.client);
             }
             
-            postTimer = new Timer(TimeSpan.FromSeconds(15).TotalMilliseconds)
+            postTimer = new Timer(TimeSpan.FromHours(1).TotalMilliseconds)
             {
                 AutoReset = true
             };
