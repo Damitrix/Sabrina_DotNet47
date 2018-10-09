@@ -110,11 +110,13 @@ namespace Sabrina.Bots
             {
                 if (databasePost.LastPosted != null && DateTime.Now - databasePost.LastPosted < new TimeSpan(30, 0, 0, 0))
                 {
+                    await PostRandom(client);
                     return;
                 }
 
                 if (databasePost.IsLoli == 1)
                 {
+                    await PostRandom(client);
                     return;
                 }
 
@@ -326,7 +328,7 @@ namespace Sabrina.Bots
         {
             var lastPost = Tables.Discord.TumblrPost.LastPost();
 
-            if (lastPost?.LastPosted == null || DateTime.Now > lastPost.LastPosted.Value + TimeSpan.FromHours(1))
+            if (lastPost?.LastPosted == null || DateTime.Now > lastPost.LastPosted.Value + TimeSpan.FromSeconds(1))
             {
                 await PostRandom(this.client);
             }
@@ -336,7 +338,7 @@ namespace Sabrina.Bots
                 await PostRandom(this.client);
             }
             
-            postTimer = new Timer(TimeSpan.FromHours(1).TotalMilliseconds)
+            postTimer = new Timer(TimeSpan.FromSeconds(15).TotalMilliseconds)
             {
                 AutoReset = true
             };
@@ -346,6 +348,7 @@ namespace Sabrina.Bots
 
         private async void PostTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            Console.WriteLine("Should Post now.");
             await PostRandom(this.client);
         }
 
