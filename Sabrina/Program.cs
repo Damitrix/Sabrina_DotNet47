@@ -27,31 +27,31 @@ namespace Sabrina
     using DSharpPlus.Entities;
     using DSharpPlus.EventArgs;
     using DSharpPlus.Interactivity;
-    using DSharpPlus.VoiceNext;
-    using DSharpPlus.VoiceNext.Codec;
 
     using Sabrina.Bots;
     using Sabrina.Entities;
     using Sabrina.Pornhub;
     using Microsoft.Extensions.DependencyInjection;
 
-    using Tables = TableObjects.Tables;
+    using Models;
 
     internal class Program
     {
         private const string Prefix = "//";
 
-        private CommandsNextExtension cmdsNext;
-
-        private InteractivityExtension interactivity;
-
         private DiscordClient client;
+
+        public CommandsNextModule Commands { get; set; }
+
+        public InteractivityModule Interactivity { get; set; }
 
         private SqlConnection conn;
 
         private TumblrBot tmblrBot;
 
         public object Voice { get; private set; }
+
+        DiscordContext _context;
 
         /// <summary>
         /// The main.
@@ -62,7 +62,15 @@ namespace Sabrina
         public static void Main(string[] args)
         {
             var prog = new Program();
-            prog.MainAsync().GetAwaiter().GetResult();
+            try
+            {
+                prog.MainAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                //throw ex;
+            }
         }
 
         public void Dispose()
@@ -85,15 +93,12 @@ namespace Sabrina
             this.conn = new SqlConnection(Config.DataBaseConnectionString);
             await this.conn.OpenAsync();
 
-            await this.client.UpdateStatusAsync(new DiscordActivity("Pictures of Feet", ActivityType.Streaming), UserStatus.Online);
+            await this.client.UpdateStatusAsync(new DiscordGame("Feetsies"), UserStatus.Online);
             
             // TODO: Looks weird, cause unused.
             PornhubBot pornhubBot = new PornhubBot(this.client);
 
-            this.tmblrBot = new TumblrBot(this.client);
-
-            var vcfg = new VoiceNextConfiguration { VoiceApplication = VoiceApplication.Music };
-            this.Voice = this.client.UseVoiceNext(vcfg);
+            this.tmblrBot = new TumblrBot(this.client, _context);
 
             var exit = false;
             while (!exit)
@@ -128,7 +133,7 @@ namespace Sabrina
             if (e.Member.Id == 450771319479599114)
             {
                 await(await e.Guild.GetMemberAsync(450771319479599114)).ModifyAsync(
-                    model => model.Nickname = "Sabrina");
+                    nickname: "Sabrina");
             }
         }
 
@@ -143,18 +148,35 @@ namespace Sabrina
         /// </returns>
         private async Task ClientMessageCreated(MessageCreateEventArgs e)
         {
-            Tables.Discord.Message msg = new Tables.Discord.Message(e.Author.Id, e.Message.Content, e.Message.Channel.Id, e.Message.CreationTimestamp.DateTime);
-            var user = Tables.Discord.User.Load(e.Message.Author);
-            if (user == null)
+            var msg = new Messages()
             {
-                user = new Tables.Discord.User
-                {
-                    UserId = e.Author.Id
-                };
-                user.Save();
-            }
+                AuthorId = Convert.ToInt64(e.Author.Id),
+                MessageText = e.Message.Content,
+                ChannelId = Convert.ToInt64(e.Message.Channel.Id),
+                CreationDate = e.Message.CreationTimestamp.DateTime
+            };
+            try
+            {
+                var user = await _context.Users.FindAsync(Convert.ToInt64(e.Message.Author.Id));
 
-            msg.Save();
+                if (user == null)
+                {
+                    user = new Users
+                    {
+                        UserId = Convert.ToInt64(e.Author.Id)
+                    };
+
+                    _context.Users.Add(user);
+                }
+
+                await _context.Messages.AddAsync(msg);
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         /// <summary>
@@ -215,85 +237,36 @@ namespace Sabrina
 
         private void SetCommands()
         {
-            var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            services.AddSingleton(new Dependencies(this.interactivity));
-            this.cmdsNext = this.client.UseCommandsNext(
-                new CommandsNextConfiguration()
+            var ccfg = new CommandsNextConfiguration()
                     {
                         CaseSensitive = false,
                         EnableDefaultHelp = true,
                         EnableDms = false,
                         EnableMentionPrefix = true,
                         IgnoreExtraArguments = true,
-                        DmHelp = true,
-                        StringPrefixes = new[] { Prefix },
-                        Services = services.BuildServiceProvider()
-                    });
+                        StringPrefix = Prefix,
+                    };
+
+            var colBuilder = new DependencyCollectionBuilder();
+
+            _context = new DiscordContext(new Microsoft.EntityFrameworkCore.DbContextOptions<DiscordContext>());
+            colBuilder.AddInstance(_context);
+
+            Console.WriteLine(_context.Users.First().UserId);
+
+            ccfg.Dependencies = colBuilder.Build();
+
+            this.Commands = this.client.UseCommandsNext(ccfg);
 
             foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && t.Namespace == "Sabrina.Commands"))
             {
-                if (type == null)
+                if (type == null || type.Name == "BlackJackGame" || type.IsAbstract || type.CustomAttributes.Count() > 0) //Really shitty solution, but im lazy
                 {
                     continue;
                 }
 
-                if (IsModuleCandidateType(type))
-                {
-                    this.cmdsNext.RegisterCommands(type);
-                }
+                this.Commands.RegisterCommands(type);
             }
-        }
-
-        internal static bool IsModuleCandidateType(Type type)
-            => IsModuleCandidateType(type.GetTypeInfo());
-
-        internal static bool IsModuleCandidateType(TypeInfo ti)
-        {
-            // check if compiler-generated
-            if (ti.GetCustomAttribute<CompilerGeneratedAttribute>(false) != null)
-                return false;
-
-            // check if derives from the required base class
-            var tmodule = typeof(BaseCommandModule);
-            var timodule = tmodule.GetTypeInfo();
-            if (!timodule.IsAssignableFrom(ti))
-                return false;
-
-            // check if anonymous
-            if (ti.IsGenericType && ti.Name.Contains("AnonymousType") && (ti.Name.StartsWith("<>") || ti.Name.StartsWith("VB$")) && (ti.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic)
-                return false;
-
-            // check if abstract, static, or not a class
-            if (!ti.IsClass || ti.IsAbstract)
-                return false;
-
-            // check if delegate type
-            var dlgt = typeof(Delegate).GetTypeInfo();
-            if (dlgt.IsAssignableFrom(ti))
-                return false;
-
-            // qualifies if any method or type qualifies
-            return ti.DeclaredMethods.Any(xmi => IsCommandCandidate(xmi, out _)) || ti.DeclaredNestedTypes.Any(xti => IsModuleCandidateType(xti));
-        }
-
-        internal static bool IsCommandCandidate(MethodInfo method, out ParameterInfo[] parameters)
-        {
-            parameters = null;
-            // check if exists
-            if (method == null)
-                return false;
-
-            // check if static, non-public, abstract, a constructor, or a special name
-            if (method.IsStatic || method.IsAbstract || method.IsConstructor || method.IsSpecialName)
-                return false;
-
-            // check if appropriate return and arguments
-            parameters = method.GetParameters();
-            if (!parameters.Any() || parameters.First().ParameterType != typeof(CommandContext) || method.ReturnType != typeof(Task))
-                return false;
-
-            // qualifies
-            return true;
         }
 
 
@@ -302,19 +275,19 @@ namespace Sabrina
             var config = new DiscordConfiguration
                              {
                                  AutoReconnect = true,
-                                 GatewayCompressionLevel = GatewayCompressionLevel.Stream,
                                  MessageCacheSize = 2048,
                                  LogLevel = LogLevel.Debug,
                                  Token = Config.Token,
                                  TokenType = TokenType.Bot,
                                  UseInternalLogHandler = true
                              };
+            
             this.client = new DiscordClient(config);
 
-            this.interactivity = this.client.UseInteractivity(
+            this.Interactivity = this.client.UseInteractivity(
                 new InteractivityConfiguration()
                     {
-                        PaginationBehavior = TimeoutBehaviour.DeleteMessage,
+                        PaginationBehaviour = TimeoutBehaviour.Default,
                         PaginationTimeout = TimeSpan.FromSeconds(30),
                         Timeout = TimeSpan.FromSeconds(30)
                     });

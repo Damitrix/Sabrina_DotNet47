@@ -7,16 +7,25 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Sabrina.Entities;
+using DSharpPlus.Interactivity;
 using Sabrina.Entities.Persistent;
+using Sabrina.Models;
 
 namespace Sabrina.Commands
 {
-    using Tables = TableObjects.Tables;
+
 
     [Group("game")]
     [Aliases("i")]
-    public class Game : BaseCommandModule
+    public class Game
     {
+        private DiscordContext _context;
+
+        public Game(DiscordContext context)
+        {
+            _context = new DiscordContext();
+        }
+
         private const string HitStayRegex = "\\b[Hh][Ii][Tt]?\\b|\\b[Ss][Tt][Aa][Nn][Dd]?\\b";
         private const string HitRegex = "[Hh][Ii][Tt]?";
         private const string StandRegex = "[Ss][Tt][Aa][Nn][Dd]?";
@@ -24,13 +33,6 @@ namespace Sabrina.Commands
         private const string ConfirmRegex = "\\b[Yy][Ee]?[Ss]?\\b|\\b[Nn][Oo]?\\b";
         private const string YesRegex = "[Yy][Ee]?[Ss]?";
         private const string NoRegex = "[Nn][Oo]?";
-
-        private readonly Dependencies dep;
-
-        public Game(Dependencies d)
-        {
-            this.dep = d;
-        }
 
         [Command("blackjack")]
         [Description("Play BlackJack to gamble for reduced Edges")]
@@ -49,7 +51,7 @@ namespace Sabrina.Commands
             }
 
             // Create a new Game and Deal to Player and House
-            var game = new BlackJackGame(betEdges, ctx);
+            var game = new BlackJackGame(betEdges, ctx, _context);
             var playerHolds = false;
 
             await ctx.RespondAsync("Game Start!\n");
@@ -86,7 +88,7 @@ namespace Sabrina.Commands
             while (!game.PlayerBusts && !playerHolds && !BlackJackGame.IsBlackJack(game.PlayerCards))
             {
                 await ctx.RespondAsync("Hit or Stand?");
-                var m = await dep.Interactivity.WaitForMessageAsync(
+                var m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
                             x => x.Channel.Id == ctx.Channel.Id && x.Author.Id == ctx.Member.Id
                                                                 && Regex.IsMatch(x.Content, HitStayRegex),
                             TimeSpan.FromSeconds(60));
@@ -130,7 +132,7 @@ namespace Sabrina.Commands
                     // Ask for even
                     await ctx.RespondAsync(
                         "You have a Blackjack, but the House has an Ace, do you want to take even money?");
-                    var m = await this.dep.Interactivity.WaitForMessageAsync(
+                    var m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
                                 x => x.Channel.Id == ctx.Channel.Id && x.Author.Id == ctx.Member.Id
                                                                     && Regex.IsMatch(x.Content, ConfirmRegex));
 
@@ -165,7 +167,7 @@ namespace Sabrina.Commands
                 {
                     // Ask for even
                     await ctx.RespondAsync("House has an Ace, do you want to take insurance?");
-                    var m = await this.dep.Interactivity.WaitForMessageAsync(
+                    var m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
                                 x => x.Channel.Id == ctx.Channel.Id && x.Author.Id == ctx.Member.Id
                                                                     && Regex.IsMatch(x.Content, ConfirmRegex));
 
@@ -266,16 +268,18 @@ namespace Sabrina.Commands
             Lost
         }
 
-        private readonly Tables.Discord.User user;
+        private readonly Users user;
         private CommandContext ctx;
         public List<Card> Deck = new List<Card>(104);
         public List<Card> HouseCards = new List<Card>();
         public bool PlayerBusts;
         public List<Card> PlayerCards = new List<Card>();
+        private DiscordContext _context;
 
-        public BlackJackGame(int betEdges, CommandContext ctx)
+        public BlackJackGame(int betEdges, CommandContext ctx, DiscordContext context)
         {
-            this.user = Tables.Discord.User.Load(ctx.Message.Author);
+            _context = new DiscordContext();
+            this.user = context.Users.Find(Convert.ToInt64(Convert.ToInt64(ctx.Message.Author.Id)));
             this.ctx = ctx;
 
             // 2 Decks
@@ -299,7 +303,7 @@ namespace Sabrina.Commands
         public async void OnWin()
         {
             this.user.WalletEdges -= this.BetEdges;
-            this.user.Save();
+            await _context.SaveChangesAsync();
             await this.ctx.RespondAsync(
                 $"You Win! {PostFixes.Good[Helpers.RandomGenerator.RandomInt(0, PostFixes.Good.Length)]}{Environment.NewLine}" +
                 $"I will deduct {this.BetEdges} edges from your balance.{Environment.NewLine}" +
@@ -309,7 +313,7 @@ namespace Sabrina.Commands
         public async void OnLoose()
         {
             this.user.WalletEdges += this.BetEdges;
-            this.user.Save();
+            await _context.SaveChangesAsync();
             await this.ctx.RespondAsync(
                 $"You Lose! {PostFixes.Bad[Helpers.RandomGenerator.RandomInt(0, PostFixes.Bad.Length)]}{Environment.NewLine}" +
                 $"I will add {this.BetEdges} edges to your balance.{Environment.NewLine}" +
@@ -326,7 +330,7 @@ namespace Sabrina.Commands
         public async void OnSpecialWin()
         {
             this.user.WalletEdges -= this.BetEdges / 5 * 3;
-            this.user.Save();
+            await _context.SaveChangesAsync();
             await this.ctx.RespondAsync(
                 $"You Win! {PostFixes.Special[Helpers.RandomGenerator.RandomInt(0, PostFixes.Special.Length)]}{Environment.NewLine}" +
                 $"I will deduct {this.BetEdges / 5 * 3} edges from your balance.{Environment.NewLine}" +

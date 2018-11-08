@@ -12,12 +12,15 @@ namespace Sabrina.Entities.Persistent
     using System;
 
     using DSharpPlus.Entities;
+    using Sabrina.Models;
 
     /// <summary>
     /// The wheel outcome.
     /// </summary>
     internal abstract class WheelOutcome
     {
+        protected DiscordContext _context;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="WheelOutcome"/> class.
         /// </summary>
@@ -27,7 +30,7 @@ namespace Sabrina.Entities.Persistent
         /// <param name="settings">
         /// The settings.
         /// </param>
-        protected WheelOutcome(TableObjects.Tables.Discord.SlaveReport.Outcome outcome, TableObjects.Tables.Discord.UserSetting settings)
+        protected WheelOutcome(SlaveReportsExtension.Outcome outcome, Models.UserSettings settings, DiscordContext context)
         {
             // ReSharper disable once VirtualMemberCallInConstructor
             this.Outcome = outcome;
@@ -36,7 +39,7 @@ namespace Sabrina.Entities.Persistent
         /// <summary>
         /// Gets or sets the outcome.
         /// </summary>
-        public abstract TableObjects.Tables.Discord.SlaveReport.Outcome Outcome { get; protected set; }
+        public abstract SlaveReportsExtension.Outcome Outcome { get; protected set; }
 
         /// <summary>
         /// Gets or sets the denial time.

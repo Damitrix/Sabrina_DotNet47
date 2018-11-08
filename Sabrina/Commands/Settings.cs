@@ -16,15 +16,22 @@ namespace Sabrina.Commands
     using System;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using Tables = TableObjects.Tables;
+
+    using DSharpPlus.Interactivity;
+    using Sabrina.Models;
 
     /// <summary>
     /// The settings.
     /// </summary>
     [Group("settings")]
     [Aliases("setting")]
-    internal class Settings : BaseCommandModule
+    internal class Settings
     {
+        private DiscordContext _context;
+        public Settings(DiscordContext context)
+        {
+            _context = new DiscordContext();
+        }
         /// <summary>
         /// The confirm regex.
         /// </summary>
@@ -39,22 +46,6 @@ namespace Sabrina.Commands
         /// The no regex.
         /// </summary>
         private const string NoRegex = "[Nn][Oo]?";
-
-        /// <summary>
-        /// The dependencies.
-        /// </summary>
-        private readonly Dependencies dep;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Settings"/> class.
-        /// </summary>
-        /// <param name="d">
-        /// The dependencies.
-        /// </param>
-        public Settings(Dependencies d)
-        {
-            this.dep = d;
-        }
 
         /// <summary>
         /// Setup Settings and similar for the current User.
@@ -105,7 +96,7 @@ namespace Sabrina.Commands
 
                 await dm.SendMessageAsync(embed: builder.Build());
 
-                var m = await this.dep.Interactivity.WaitForMessageAsync(
+                var m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
                     x => x.Channel.Id == dm.Id && x.Author.Id == ctx.Member.Id
                                                && Regex.IsMatch(x.Content, ConfirmRegex),
                             TimeSpan.FromSeconds(240));
@@ -135,12 +126,12 @@ namespace Sabrina.Commands
             await dm.SendMessageAsync($"Splendid! Now that you know how this works, let's start with the Settings! Just Gimi a second to check if you already have some saved.");
             await dm.TriggerTypingAsync();
 
-            var userSettings = Tables.Discord.UserSetting.Load(ctx.User);
+            var userSettings = _context.UserSettings.Find(ctx.User);
 
             if (userSettings == null)
             {
-                userSettings = new Tables.Discord.UserSetting();
-                userSettings.UserId = Convert.ToInt64(ctx.Message.Author.Id);
+                userSettings = new UserSettings();
+                userSettings.UserId = Convert.ToInt64(Convert.ToInt64(ctx.Message.Author.Id));
             }
 
             await Task.Delay(1000);
@@ -158,19 +149,19 @@ namespace Sabrina.Commands
                     Url = "http://IJustWantThisToBeBlue.com"
                 };
 
-                builder.AddField("Easiest Setting. Almost no Edges, will leave you in ruins.", Tables.Discord.UserSetting.WheelDifficultySetting.Baby.ToString());
+                builder.AddField("Easiest Setting. Almost no Edges, will leave you in ruins.", SlaveReportsExtension.WheelDifficultyPreference.Baby.ToString());
                 builder.AddField(
                     "Easy Setting, for when you are just starting with Edging.",
-                    Tables.Discord.UserSetting.WheelDifficultySetting.Easy.ToString());
+                    SlaveReportsExtension.WheelDifficultyPreference.Easy.ToString());
                 builder.AddField(
                     "Default. This is how the Wheel was before the Settings arrived, and how it is before you set up the settings. About 5% Chance to Cum.",
-                    Tables.Discord.UserSetting.WheelDifficultySetting.Default.ToString());
-                builder.AddField("Pretty Challenging.", Tables.Discord.UserSetting.WheelDifficultySetting.Hard.ToString());
-                builder.AddField("This will make every single roll Hardcore. High risk, High reward though.", Tables.Discord.UserSetting.WheelDifficultySetting.Masterbater.ToString());
+                    SlaveReportsExtension.WheelDifficultyPreference.Default.ToString());
+                builder.AddField("Pretty Challenging.", SlaveReportsExtension.WheelDifficultyPreference.Hard.ToString());
+                builder.AddField("This will make every single roll Hardcore. High risk, High reward though.", SlaveReportsExtension.WheelDifficultyPreference.Masterbater.ToString());
 
                 await dm.SendMessageAsync(embed: builder.Build());
 
-                var m = await this.dep.Interactivity.WaitForMessageAsync(
+                var m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
                     x => x.Channel.Id == dm.Id
                          && x.Author.Id == ctx.Member.Id,
                     TimeSpan.FromSeconds(240));
@@ -181,7 +172,7 @@ namespace Sabrina.Commands
                     return;
                 }
 
-                if (Enum.TryParse(m.Message.Content, out Tables.Discord.UserSetting.WheelDifficultySetting wheelDifficultySetting))
+                if (Enum.TryParse(m.Message.Content, out SlaveReportsExtension.WheelDifficultyPreference wheelDifficultySetting))
                 {
                     wheelDifficulty = (int)wheelDifficultySetting;
                 }
@@ -199,7 +190,7 @@ namespace Sabrina.Commands
 
             userSettings.WheelDifficulty = wheelDifficulty;
 
-            Tables.Discord.UserSetting.WheelPreferenceSetting? wheelTaskPreference = null;
+            SlaveReportsExtension.WheelTaskPreferenceSetting? wheelTaskPreference = null;
 
             while (wheelTaskPreference == null)
             {
@@ -209,14 +200,14 @@ namespace Sabrina.Commands
                     Url = "http://IJustWantThisToBeBlue.com"
                 };
 
-                builder.AddField("Edge for 15 Minutes. 30 second Cooldown.", Tables.Discord.UserSetting.WheelPreferenceSetting.Time.ToString());
-                builder.AddField("Edge 10 times.", Tables.Discord.UserSetting.WheelPreferenceSetting.Amount.ToString());
-                builder.AddField("Edge 10 times per day, for the next 2 Days.", Tables.Discord.UserSetting.WheelPreferenceSetting.Task.ToString());
-                builder.AddField("No preference", Tables.Discord.UserSetting.WheelPreferenceSetting.Default.ToString());
+                builder.AddField("Edge for 15 Minutes. 30 second Cooldown.", SlaveReportsExtension.WheelTaskPreferenceSetting.Time.ToString());
+                builder.AddField("Edge 10 times.", SlaveReportsExtension.WheelTaskPreferenceSetting.Amount.ToString());
+                builder.AddField("Edge 10 times per day, for the next 2 Days.", SlaveReportsExtension.WheelTaskPreferenceSetting.Task.ToString());
+                builder.AddField("No preference", SlaveReportsExtension.WheelTaskPreferenceSetting.Default.ToString());
 
                 await dm.SendMessageAsync(embed: builder.Build());
 
-                var m = await this.dep.Interactivity.WaitForMessageAsync(
+                var m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
                     x => x.Channel.Id == dm.Id
                          && x.Author.Id == ctx.Member.Id,
                     TimeSpan.FromSeconds(240));
@@ -227,7 +218,7 @@ namespace Sabrina.Commands
                     return;
                 }
 
-                if (Enum.TryParse(m.Message.Content, out Tables.Discord.UserSetting.WheelPreferenceSetting wheelPreferenceSetting))
+                if (Enum.TryParse(m.Message.Content, out SlaveReportsExtension.WheelTaskPreferenceSetting wheelPreferenceSetting))
                 {
                     wheelTaskPreference = wheelPreferenceSetting;
                 }
@@ -246,7 +237,7 @@ namespace Sabrina.Commands
 
             try
             {
-                userSettings.Save();
+                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {

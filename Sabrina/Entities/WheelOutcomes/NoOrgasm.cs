@@ -12,7 +12,8 @@ namespace Sabrina.Entities.WheelOutcomes
     using System;
     using DSharpPlus.Entities;
     using Sabrina.Entities.Persistent;
-    using Tables = TableObjects.Tables;
+    using Models;
+
 
     /// <summary>
     /// The no orgasm Outcome.
@@ -28,7 +29,7 @@ namespace Sabrina.Entities.WheelOutcomes
         /// <param name="settings">
         /// The settings.
         /// </param>
-        public NoOrgasm(Tables.Discord.SlaveReport.Outcome outcome, Tables.Discord.UserSetting settings) : base(outcome, settings)
+        public NoOrgasm(SlaveReportsExtension.Outcome outcome, UserSettings settings, DiscordContext context) : base(outcome, settings, context)
         {
             int minNum = 1;
             int maxNum = 6;
@@ -66,7 +67,7 @@ namespace Sabrina.Entities.WheelOutcomes
 
             this.Embed = builder.Build();
             this.Text = $"No orgasm for you! Try again in {rndNumber} {timeString} :P";
-            this.Outcome = Tables.Discord.SlaveReport.Outcome.Denial;
+            this.Outcome = SlaveReportsExtension.Outcome.denial;
         }
 
         /// <summary>
@@ -87,7 +88,7 @@ namespace Sabrina.Entities.WheelOutcomes
         /// <summary>
         /// Gets or sets the outcome.
         /// </summary>
-        public override Tables.Discord.SlaveReport.Outcome Outcome { get; protected set; }
+        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
 
         /// <summary>
         /// Gets or sets the text to display to the user.

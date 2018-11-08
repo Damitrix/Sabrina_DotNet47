@@ -31,23 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DSharpPlus, Version=4.0.0.531, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Sabrina\packages\DSharpPlus.4.0.0-nightly-00531\lib\net47\DSharpPlus.dll</HintPath>
+    <Reference Include="DSharpPlus, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Sabrina\packages\DSharpPlus.3.2.3\lib\net47\DSharpPlus.dll</HintPath>
     </Reference>
-    <Reference Include="DSharpPlus.CommandsNext, Version=3.0.176.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Sabrina\packages\HSNXT.DSharpPlus.CommandsNext.Extended.3.0.176\lib\netstandard2.0\DSharpPlus.CommandsNext.dll</HintPath>
+    <Reference Include="DSharpPlus.CommandsNext, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Sabrina\packages\DSharpPlus.CommandsNext.3.2.3\lib\net47\DSharpPlus.CommandsNext.dll</HintPath>
     </Reference>
-    <Reference Include="DSharpPlus.Interactivity, Version=4.0.0.531, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Sabrina\packages\DSharpPlus.Interactivity.4.0.0-nightly-00531\lib\net47\DSharpPlus.Interactivity.dll</HintPath>
-    </Reference>
-    <Reference Include="DSharpPlus.VoiceNext, Version=4.0.0.531, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Sabrina\packages\DSharpPlus.VoiceNext.4.0.0-nightly-00531\lib\net47\DSharpPlus.VoiceNext.dll</HintPath>
-    </Reference>
-    <Reference Include="HSNXT.DSharpPlus.Extended, Version=3.0.176.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Sabrina\packages\HSNXT.DSharpPlus.Extended.3.0.176\lib\net47\HSNXT.DSharpPlus.Extended.dll</HintPath>
-    </Reference>
-    <Reference Include="HSNXT.DSharpPlus.ModernEmbedBuilder, Version=3.0.176.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Sabrina\packages\HSNXT.DSharpPlus.ModernEmbedBuilder.3.0.176\lib\net47\HSNXT.DSharpPlus.ModernEmbedBuilder.dll</HintPath>
+    <Reference Include="DSharpPlus.Interactivity, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Sabrina\packages\DSharpPlus.Interactivity.3.2.3\lib\net47\DSharpPlus.Interactivity.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.DependencyInjection, Version=2.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\Sabrina\packages\Emzi0767.Microsoft.DependencyInjection.2.0.0\lib\net47\Microsoft.Extensions.DependencyInjection.dll</HintPath>

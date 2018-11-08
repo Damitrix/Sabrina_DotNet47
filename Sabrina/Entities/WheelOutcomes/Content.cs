@@ -9,17 +9,14 @@
 
 namespace Sabrina.Entities.WheelOutcomes
 {
+    using DSharpPlus.Entities;
+    using Sabrina.Entities.Persistent;
+    using Sabrina.Models;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Net;
-
-    using DSharpPlus.Entities;
-
-    using Sabrina.Entities.Persistent;
-
-    using Tables = TableObjects.Tables;
 
     /// <summary>
     /// The content outcome. Delivers your ultimate Outcome for the next few hours. With a pic ;D
@@ -36,48 +33,47 @@ namespace Sabrina.Entities.WheelOutcomes
         /// The settings.
         /// </param>
         public Content(
-            Tables.Discord.SlaveReport.Outcome outcome,
-            Tables.Discord.UserSetting settings)
-            : base(outcome, settings)
+            SlaveReportsExtension.Outcome outcome,
+            Models.UserSettings settings, Models.DiscordContext context)
+            : base(outcome, settings, context)
         {
             var denialtext = "please don't break the Bot";
 
             switch (outcome)
             {
-                case Tables.Discord.SlaveReport.Outcome.Task:
+                case SlaveReportsExtension.Outcome.task:
                     denialtext = "then spin again";
-                    this.Outcome = Tables.Discord.SlaveReport.Outcome.Task;
+                    this.Outcome = SlaveReportsExtension.Outcome.task;
                     break;
 
-                case Tables.Discord.SlaveReport.Outcome.Denial:
+                case SlaveReportsExtension.Outcome.denial:
                     denialtext = "deny your orgasm";
                     this.DenialTime = new TimeSpan(8, 0, 0);
-                    this.Outcome = Tables.Discord.SlaveReport.Outcome.Denial;
+                    this.Outcome = SlaveReportsExtension.Outcome.denial;
                     break;
 
-                case Tables.Discord.SlaveReport.Outcome.Ruin:
+                case SlaveReportsExtension.Outcome.ruin:
                     denialtext = "ruin your orgasm";
-                    this.Outcome = Tables.Discord.SlaveReport.Outcome.Ruin;
+                    this.Outcome = SlaveReportsExtension.Outcome.ruin;
                     break;
 
-                case Tables.Discord.SlaveReport.Outcome.Orgasm:
+                case SlaveReportsExtension.Outcome.orgasm:
                     denialtext = "enjoy a full orgasm";
-                    this.Outcome = Tables.Discord.SlaveReport.Outcome.Orgasm;
+                    this.Outcome = SlaveReportsExtension.Outcome.orgasm;
                     break;
 
-                case Tables.Discord.SlaveReport.Outcome.Denial
-                     | Tables.Discord.SlaveReport.Outcome.Task:
+                case SlaveReportsExtension.Outcome.denial | SlaveReportsExtension.Outcome.task:
                     var chance = Helpers.RandomGenerator.RandomInt(0, 9);
                     if (chance < 5)
                     {
                         denialtext = "deny your orgasm";
                         this.DenialTime = new TimeSpan(8, 0, 0);
-                        this.Outcome = Tables.Discord.SlaveReport.Outcome.Denial;
+                        this.Outcome = SlaveReportsExtension.Outcome.denial;
                     }
                     else
                     {
                         denialtext = "then spin again";
-                        this.Outcome = Tables.Discord.SlaveReport.Outcome.Task;
+                        this.Outcome = SlaveReportsExtension.Outcome.task;
                     }
 
                     break;
@@ -85,7 +81,7 @@ namespace Sabrina.Entities.WheelOutcomes
 
             Link link;
 
-            if (this.Outcome == Tables.Discord.SlaveReport.Outcome.Task)
+            if (this.Outcome == SlaveReportsExtension.Outcome.task)
             {
                 link = this.GetLinkFromRandomTumblr(this.GetPostCount());
             }
@@ -98,12 +94,12 @@ namespace Sabrina.Entities.WheelOutcomes
                 if (links.Count <= randomLinkNr)
                 {
                     link = new Link()
-                               {
-                                   CreatorName = "Exception",
-                                   FileName = "An Exception Occured. Sorry.",
-                                   Type = Link.ContentType.Picture,
-                                   Url = "https://Exception.com"
-                               };
+                    {
+                        CreatorName = "Exception",
+                        FileName = "An Exception Occured. Sorry.",
+                        Type = Link.ContentType.Picture,
+                        Url = "https://Exception.com"
+                    };
                 }
                 else
                 {
@@ -126,7 +122,7 @@ namespace Sabrina.Entities.WheelOutcomes
 
             var rerollIn = string.Empty;
 
-            if (this.Outcome != Tables.Discord.SlaveReport.Outcome.Task)
+            if (this.Outcome != SlaveReportsExtension.Outcome.task)
             {
                 rerollIn = "You are allowed to re-roll in 8 hours.";
                 this.WheelLockedTime = new TimeSpan(8, 0, 0);
@@ -135,19 +131,19 @@ namespace Sabrina.Entities.WheelOutcomes
             this.Text = $"{fullSentence}.{rerollIn}\n" + $"{link.Url}\n";
 
             var builder = new DiscordEmbedBuilder
-                                              {
-                                                  Title = "Click here.",
-                                                  Description = fullSentence,
-                                                  Footer = new DiscordEmbedBuilder.EmbedFooter() { Text = rerollIn },
-                                                  Url = link.Url,
-                                                  Color = link.Type == Link.ContentType.Picture
+            {
+                Title = "Click here.",
+                Description = fullSentence,
+                Footer = new DiscordEmbedBuilder.EmbedFooter() { Text = rerollIn },
+                Url = link.Url,
+                Color = link.Type == Link.ContentType.Picture
                                                               ? new DiscordColor("#42f483")
                                                               : new DiscordColor("#acf441"),
-                                                  Author = new DiscordEmbedBuilder.EmbedAuthor()
-                                                               {
-                                                                   Name = link.CreatorName
-                                                               }
-                                              };
+                Author = new DiscordEmbedBuilder.EmbedAuthor()
+                {
+                    Name = link.CreatorName
+                }
+            };
 
             if (link.Type == Link.ContentType.Picture)
             {
@@ -175,7 +171,7 @@ namespace Sabrina.Entities.WheelOutcomes
         /// <summary>
         /// Gets or sets the outcome.
         /// </summary>
-        public override Tables.Discord.SlaveReport.Outcome Outcome { get; protected set; }
+        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
 
         /// <summary>
         /// Gets or sets the text to display the user.
@@ -217,11 +213,11 @@ namespace Sabrina.Entities.WheelOutcomes
 
             var post = TumblrPost.TumblrPost.FromJson(json);
             var link = new Link
-                           {
-                               CreatorName = post.Response.Posts[0].BlogName,
-                               Url = post.Response.Posts[0].Photos[0].AltSizes.OrderBy(e => e.Height).Last().Url,
-                               Type = Link.ContentType.Picture
-                           };
+            {
+                CreatorName = post.Response.Posts[0].BlogName,
+                Url = post.Response.Posts[0].Photos[0].AltSizes.OrderBy(e => e.Height).Last().Url,
+                Type = Link.ContentType.Picture
+            };
 
             return link;
         }

@@ -17,7 +17,9 @@ namespace Sabrina.Entities.WheelOutcomes
 
     using Sabrina.Entities.Persistent;
 
-    using Tables = TableObjects.Tables;
+    using Models;
+
+
 
     /// <summary>
     /// The edge Outcome.
@@ -33,27 +35,27 @@ namespace Sabrina.Entities.WheelOutcomes
         /// <param name="settings">
         /// The settings.
         /// </param>
-        public Edge(Tables.Discord.SlaveReport.Outcome outcome, Tables.Discord.UserSetting settings) : base(outcome, settings)
+        public Edge(SlaveReportsExtension.Outcome outcome, UserSettings settings, DiscordContext context) : base(outcome, settings, context)
         {
             int edgeMinutes = Helpers.RandomGenerator.RandomInt(5, 31);
 
             if (settings.WheelDifficulty != null)
             {
-                switch ((Tables.Discord.UserSetting.WheelDifficultySetting)settings.WheelDifficulty)
+                switch ((SlaveReportsExtension.WheelDifficultyPreference)settings.WheelDifficulty)
                 {
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Baby:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Baby:
                         edgeMinutes = Convert.ToInt32((double)edgeMinutes / 2);
                         break;
 
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Easy:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Easy:
                         edgeMinutes = Convert.ToInt32((double)edgeMinutes / 1.5);
                         break;
 
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Hard:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Hard:
                         edgeMinutes = Convert.ToInt32((double)edgeMinutes * 1.5);
                         break;
 
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Masterbater:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Masterbater:
                         edgeMinutes = Convert.ToInt32((double)edgeMinutes * 2);
                         break;
                 }
@@ -89,7 +91,7 @@ namespace Sabrina.Entities.WheelOutcomes
 
             if (Helpers.RandomGenerator.RandomInt(0, 2) == 0)
             {
-                if (settings.WheelTaskPreference != null && ((Tables.Discord.UserSetting.WheelPreferenceSetting)settings.WheelTaskPreference).HasFlag(Tables.Discord.UserSetting.WheelPreferenceSetting.Time))
+                if (settings.WheelTaskPreference != null && ((SlaveReportsExtension.WheelTaskPreferenceSetting)settings.WheelTaskPreference).HasFlag(SlaveReportsExtension.WheelTaskPreferenceSetting.Time))
                 {
                     this.Chance *= 3;
                 }
@@ -102,7 +104,7 @@ namespace Sabrina.Entities.WheelOutcomes
             }
             else
             {
-                if (settings.WheelTaskPreference != null && ((Tables.Discord.UserSetting.WheelPreferenceSetting)settings.WheelTaskPreference).HasFlag(Tables.Discord.UserSetting.WheelPreferenceSetting.Amount))
+                if (settings.WheelTaskPreference != null && ((SlaveReportsExtension.WheelTaskPreferenceSetting)settings.WheelTaskPreference).HasFlag(SlaveReportsExtension.WheelTaskPreferenceSetting.Amount))
                 {
                     this.Chance *= 3;
                 }
@@ -113,13 +115,13 @@ namespace Sabrina.Entities.WheelOutcomes
             }
 
             this.Embed = builder.Build();
-            this.Outcome = Tables.Discord.SlaveReport.Outcome.Task;
+            this.Outcome = SlaveReportsExtension.Outcome.task;
         }
 
         /// <summary>
         /// Gets or sets the outcome.
         /// </summary>
-        public override Tables.Discord.SlaveReport.Outcome Outcome { get; protected set; }
+        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
 
         /// <summary>
         /// Gets or sets the denial time.

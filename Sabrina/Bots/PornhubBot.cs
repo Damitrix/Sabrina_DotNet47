@@ -61,16 +61,16 @@ namespace Sabrina.Pornhub
                                 web = new HtmlWeb();
                                 doc = web.Load(url);
 
-                                var titleNode = doc.DocumentNode.SelectSingleNode("/html/head/meta[8]");
-                                var imageNode = doc.DocumentNode.SelectSingleNode("/html/head/meta[10]");
+                                var titleNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:title").FirstOrDefault();
+                                var imageNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:image").FirstOrDefault();
 
                                 if (titleNode == null || imageNode == null)
                                 {
                                     await Task.Delay(5000);
                                     doc = web.Load(url);
                                     await Task.Delay(5000);
-                                    titleNode = doc.DocumentNode.SelectSingleNode("/html/head/meta[8]");
-                                    imageNode = doc.DocumentNode.SelectSingleNode("/html/head/meta[10]");
+                                    titleNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:title").FirstOrDefault();
+                                    imageNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:image").FirstOrDefault();
                                 }
 
                                 if (titleNode == null || imageNode == null)

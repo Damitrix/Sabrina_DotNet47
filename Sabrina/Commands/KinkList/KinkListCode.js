@@ -105,7 +105,7 @@ $(function () {
                         var totalHeight = 0;
                         for (var i = 0; i < $categories.length; i++) {
                                 var $clone = $categories[i].clone().appendTo($body);
-                                var height = $clone.height();;
+                                var height = $clone.height();
                                 totalHeight += height;
                                 $clone.remove();
                         }

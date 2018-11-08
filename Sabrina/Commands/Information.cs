@@ -21,30 +21,13 @@ namespace Sabrina.Commands
 
     using Sabrina.Entities;
     using Sabrina.Entities.Persistent;
-
-    using Tables = TableObjects.Tables;
+    using Sabrina.Models;
 
     /// <summary>
     /// The information Command Group.
     /// </summary>
-    internal class Information : BaseCommandModule
+    internal class Information
     {
-        /// <summary>
-        /// The dependencies.
-        /// </summary>
-        private readonly Dependencies dep;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Information"/> class.
-        /// </summary>
-        /// <param name="d">
-        /// The dependencies.
-        /// </param>
-        public Information(Dependencies d)
-        {
-            this.dep = d;
-        }
-
         /// <summary>
         /// The get chances Command.
         /// </summary>
@@ -54,10 +37,10 @@ namespace Sabrina.Commands
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        [Command("chances"), RequireRolesAttribute(RoleCheckMode.Any, "mistress", "minion", "techno kitty")]
+        [Command("chances"), RequireRolesAttribute("mistress", "minion", "techno kitty")]
         public async Task GetChancesAsync(CommandContext ctx)
         {
-            List<WheelOutcome> wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(Tables.Discord.SlaveReport.Outcome.Task)
+            List<WheelOutcome> wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(SlaveReportsExtension.Outcome.task)
                 .ToList();
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder();
             builder.WithDescription(
@@ -79,6 +62,12 @@ namespace Sabrina.Commands
             // builder.AddField("Ruin", OrgasmWheel.RuinChance.ToString(), true);
             // builder.AddField("Orgasm", OrgasmWheel.OrgasmChance.ToString(), true);
             await ctx.RespondAsync(embed: builder.Build());
+        }
+
+        [Command("random")]
+        public async Task RollRandomAsync(CommandContext ctx, int Start, int End)
+        {
+            await ctx.RespondAsync(Helpers.RandomGenerator.RandomInt(Start, End + 1).ToString());
         }
     }
 }

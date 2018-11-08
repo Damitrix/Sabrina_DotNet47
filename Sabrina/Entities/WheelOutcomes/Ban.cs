@@ -14,12 +14,11 @@ namespace Sabrina.Entities.WheelOutcomes
     using DSharpPlus.Entities;
 
     using Sabrina.Entities.Persistent;
-
-    using Tables = TableObjects.Tables;
+    using Sabrina.Models;
 
     internal sealed class Ban : WheelOutcome
     {
-        public override Tables.Discord.SlaveReport.Outcome Outcome { get; protected set; }
+        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
         public override TimeSpan DenialTime { get; protected set; }
         public override TimeSpan WheelLockedTime { get; protected set; }
         public override string Text { get; protected set; }
@@ -43,15 +42,15 @@ namespace Sabrina.Entities.WheelOutcomes
         /// <param name="settings">
         /// The settings.
         /// </param>
-        public Ban(Tables.Discord.SlaveReport.Outcome outcome, Tables.Discord.UserSetting settings) : base(outcome, settings)
+        public Ban(SlaveReportsExtension.Outcome outcome, Models.UserSettings settings, DiscordContext context) : base(outcome, settings, context)
         {
             if (settings.WheelTaskPreference == null)
             {
-                settings.WheelTaskPreference = (int)Tables.Discord.UserSetting.WheelPreferenceSetting.Default;
-                settings.Save();
+                settings.WheelTaskPreference = (int)SlaveReportsExtension.WheelTaskPreferenceSetting.Default;
+                context.SaveChanges();
             }
 
-            if (settings.WheelTaskPreference != null && ((Tables.Discord.UserSetting.WheelPreferenceSetting)settings.WheelTaskPreference).HasFlag(Tables.Discord.UserSetting.WheelPreferenceSetting.Task))
+            if (settings.WheelTaskPreference != null && ((SlaveReportsExtension.WheelTaskPreferenceSetting)settings.WheelTaskPreference).HasFlag(SlaveReportsExtension.WheelTaskPreferenceSetting.Task))
             {
                 this.Chance *= 6;
             }
@@ -75,21 +74,21 @@ namespace Sabrina.Entities.WheelOutcomes
             {
                 int edgeAmount = Helpers.RandomGenerator.RandomInt(this.minEdgeAmount, this.maxEdgeAmount) * 2;
 
-                switch ((Tables.Discord.UserSetting.WheelDifficultySetting)settings.WheelDifficulty)
+                switch ((SlaveReportsExtension.WheelDifficultyPreference)settings.WheelDifficulty)
                 {
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Baby:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Baby:
                         edgeAmount = edgeAmount / 4;
                         break;
 
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Easy:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Easy:
                         edgeAmount = edgeAmount / 2;
                         break;
 
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Hard:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Hard:
                         edgeAmount = edgeAmount * 2;
                         break;
 
-                    case Tables.Discord.UserSetting.WheelDifficultySetting.Masterbater:
+                    case SlaveReportsExtension.WheelDifficultyPreference.Masterbater:
                         edgeAmount = edgeAmount * 4;
                         break;
                 }
@@ -104,7 +103,7 @@ namespace Sabrina.Entities.WheelOutcomes
             }
 
             this.Embed = builder.Build();
-            this.Outcome = Tables.Discord.SlaveReport.Outcome.Task;
+            this.Outcome = SlaveReportsExtension.Outcome.task;
         }
     }
 }

@@ -1,18 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DSharpPlus.CommandsNext;
+﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Sabrina.Entities.Persistent;
-using Tables = TableObjects.Tables;
+using Sabrina.Models;
+using System;
+using System.Threading.Tasks;
 
 namespace Sabrina.Commands
 {
-    internal class Edges : BaseCommandModule
+    internal class Edges
     {
+        private DiscordContext _context;
+
+        public Edges(DiscordContext context)
+        {
+            _context = new DiscordContext();
+        }
+
         [Command("assignedges")]
         [Description("Assign Edges to yourself")]
         public async Task AssignEdgesAsync(CommandContext ctx, int edges)
@@ -22,10 +25,10 @@ namespace Sabrina.Commands
                 await ctx.RespondAsync("You cannot assign yourself less than 1 Edge. For obvious reasons");
             }
 
-            var user = Tables.Discord.User.Load(ctx.Message.Author);
+            var user = await _context.Users.FindAsync(Convert.ToInt64(Convert.ToInt64(ctx.Message.Author.Id)));
 
             user.WalletEdges += edges;
-            user.Save();
+            await _context.SaveChangesAsync();
 
             await ctx.RespondAsync(
                 $"I've assigned you {edges} edges. Your balance is now {user.WalletEdges} edges.");
@@ -33,16 +36,27 @@ namespace Sabrina.Commands
 
         [Command("assignedgesto")]
         [Description("Assign Edges to someone")]
-        [RequireRolesAttribute(RoleCheckMode.Any ,"mistress", "aki's cutie")]
+        [RequireRolesAttribute("mistress", "aki's cutie")]
         public async Task AssignEdgesToAsync(CommandContext ctx, DiscordUser dcUser, int edges)
         {
-            var user = Tables.Discord.User.Load(ctx.Message.Author);
+            var user = await _context.Users.FindAsync(Convert.ToInt64(Convert.ToInt64(ctx.Message.Author.Id)));
 
             user.WalletEdges += edges;
-            user.Save();
+
+            await _context.SaveChangesAsync();
 
             await ctx.RespondAsync(
                 $"I've assigned {dcUser.Username} {edges} edges. Their balance is now {user.WalletEdges} edges.");
+        }
+
+        [Command("edges")]
+        [Description("Show how much Edges you have left")]
+        public async Task DisplayEdges(CommandContext ctx)
+        {
+            var user = await _context.Users.FindAsync(Convert.ToInt64(Convert.ToInt64(ctx.Message.Author.Id)));
+
+            await ctx.RespondAsync(
+                $"Your Edge Balance is {user.WalletEdges} edges.");
         }
 
         [Command("edge")]
@@ -51,24 +65,15 @@ namespace Sabrina.Commands
         [Cooldown(1, 20, CooldownBucketType.User)]
         public async Task HasEdgedAsync(CommandContext ctx)
         {
-            var user = Tables.Discord.User.Load(ctx.Message.Author);
+            var user = await _context.Users.FindAsync(Convert.ToInt64(Convert.ToInt64(ctx.Message.Author.Id)));
 
             user.WalletEdges -= 1;
             user.TotalEdges += 1;
-            user.Save();
+
+            await _context.SaveChangesAsync();
 
             await ctx.RespondAsync(
                 $"You've told me you've edged 1 time. Your balance is now {user.WalletEdges} edges.");
-        }
-
-        [Command("edges")]
-        [Description("Show how much Edges you have left")]
-        public async Task DisplayEdges(CommandContext ctx)
-        {
-            var user = Tables.Discord.User.Load(ctx.Message.Author);
-
-            await ctx.RespondAsync(
-                $"Your Edge Balance is {user.WalletEdges} edges.");
         }
     }
 }

@@ -16,12 +16,20 @@ namespace Sabrina.Commands
 
     using Sabrina.Bots;
     using Sabrina.Entities;
+    using Sabrina.Models;
 
     /// <summary>
     /// The feet Command Group.
     /// </summary>
-    internal class Feet : BaseCommandModule
+    internal class Feet
     {
+        private DiscordContext _context;
+
+        public Feet(DiscordContext context)
+        {
+            _context = new DiscordContext();
+        }
+
         /// <summary>
         /// The boost feet pics Command.
         /// </summary>
@@ -31,13 +39,13 @@ namespace Sabrina.Commands
         /// <returns>
         /// A <see cref="Task"/>.
         /// </returns>
-        [Command("boost"), Description("Posts some more Feet. Can be used 2 times every 10 minutes"), Cooldown(2, 600, CooldownBucketType.Guild)]
+        [Command("boost"), Description("Posts some more Feet. Can be used 2 times every 10 minutes"), Cooldown(2, 1, CooldownBucketType.Guild)]
         public async Task BoostFeetPics(CommandContext ctx)
         {
             var picsToPost = Helpers.RandomGenerator.RandomInt(2, 5);
             for (int i = 0; i < picsToPost; i++)
             {
-                await TumblrBot.PostRandom(ctx.Client);
+                await TumblrBot.PostRandom(ctx.Client, _context);
             }
         }
     }

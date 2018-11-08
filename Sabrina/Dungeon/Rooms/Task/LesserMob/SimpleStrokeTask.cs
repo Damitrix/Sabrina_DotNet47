@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Sabrina.Entities;
+using Sabrina.Entities.WheelOutcomes;
 
 namespace Sabrina.Dungeon.Rooms.Task.LesserMob
 {

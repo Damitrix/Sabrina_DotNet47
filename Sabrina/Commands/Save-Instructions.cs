@@ -22,28 +22,19 @@ namespace Sabrina.Commands
     using DSharpPlus.Entities;
 
     using Sabrina.Entities;
+    using Sabrina.Models;
 
-    using Tables = TableObjects.Tables;
+
 
     /// <summary>
     /// The slave instructions command group.
     /// </summary>
-    internal class SlaveInstructions : BaseCommandModule
+    internal class SlaveInstructions
     {
-        /// <summary>
-        /// The dependencies.
-        /// </summary>
-        private readonly Dependencies dep;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SlaveInstructions"/> class.
-        /// </summary>
-        /// <param name="d">
-        /// The dependencies.
-        /// </param>
-        public SlaveInstructions(Dependencies d)
+        private DiscordContext _context;
+        public SlaveInstructions(DiscordContext context)
         {
-            this.dep = d;
+            _context = new DiscordContext();
         }
 
         /// <summary>
@@ -60,7 +51,7 @@ namespace Sabrina.Commands
         /// </returns>
         [Command("getreports")]
         [Description("Get all Reports in a specified time")]
-        [RequireRolesAttribute(RoleCheckMode.Any, "mistress")]
+        [RequireRolesAttribute("mistress")]
         public async Task GetReportsAsync(CommandContext ctx, string time)
         {
             TimeSpan timespan;
@@ -77,11 +68,10 @@ namespace Sabrina.Commands
 
             try
             {
-                IQueryable<Tables.Discord.SlaveReport> reports =
-                    Tables.Discord.SlaveReport.Load(DateTime.Now - timespan, DateTime.Now);
+                var reports = _context.Slavereports.Where(report => report.TimeOfReport > DateTime.Now - timespan);
 
-                List<Tuple<long, List<Tables.Discord.SlaveReport>>> groupedReports =
-                    new List<Tuple<long, List<Tables.Discord.SlaveReport>>>();
+                List<Tuple<long, List<Slavereports>>> groupedReports =
+                    new List<Tuple<long, List<Slavereports>>>();
 
                 foreach (var report in reports)
                 {
@@ -91,14 +81,14 @@ namespace Sabrina.Commands
                     }
                     else
                     {
-                        var list = new List<Tables.Discord.SlaveReport> { report };
+                        var list = new List<Slavereports> { report };
 
                         groupedReports.Add(
-                            new Tuple<long, List<Tables.Discord.SlaveReport>>(report.UserId, list));
+                            new Tuple<long, List<Slavereports>>(report.UserId, list));
                     }
                 }
 
-                foreach (Tuple<long, List<Tables.Discord.SlaveReport>> userReports in groupedReports)
+                foreach (Tuple<long, List<Slavereports>> userReports in groupedReports)
                 {
                     var currentUser = await ctx.Client.GetUserAsync(Convert.ToUInt64(userReports.Item1));
                     var builder = new DiscordEmbedBuilder
@@ -193,12 +183,12 @@ namespace Sabrina.Commands
                 return;
             }
 
-            IQueryable<Tables.Discord.SlaveReport> slaveReports =
-                from report in Tables.Discord.SlaveReport.Load(DateTime.Now.AddHours(-20), DateTime.Now)
+            IQueryable<Slavereports> slaveReports =
+                from report in _context.Slavereports.Where(report => report.TimeOfReport > DateTime.Now.AddHours(-20))
                 where report.UserId == Convert.ToInt64(ctx.User.Id)
                 select report;
 
-            if (slaveReports.Any() && ctx.Message.Author.Id != 347004618183540740)
+            if (slaveReports.Any() && Convert.ToInt64(ctx.Message.Author.Id) != 347004618183540740)
             {
                 var lastReport = slaveReports.First();
 
@@ -212,10 +202,10 @@ namespace Sabrina.Commands
                     return;
                 }
             }
-            else if (ctx.Message.Author.Id == 347004618183540740)
+            else if (Convert.ToInt64(ctx.Message.Author.Id) == 347004618183540740)
             {
-                IQueryable<Tables.Discord.SlaveReport> slaveReportsPj =
-                    from report in Tables.Discord.SlaveReport.Load(DateTime.Now.AddHours(-8), DateTime.Now)
+                IQueryable<Slavereports> slaveReportsPj =
+                    from report in _context.Slavereports.Where(report => report.TimeOfReport > DateTime.Now.AddHours(-8))
                     where report.UserId == Convert.ToInt64(ctx.User.Id)
                     select report;
 
@@ -235,7 +225,7 @@ namespace Sabrina.Commands
                 }
             }
 
-            if (Enum.TryParse(outcome, out Tables.Discord.SlaveReport.Outcome result))
+            if (Enum.TryParse(outcome, out SlaveReportsExtension.Outcome result))
             {
                 TimeSpan span;
                 try
@@ -243,15 +233,18 @@ namespace Sabrina.Commands
                     span = TimeResolver.GetTimeSpan(time);
 
                     await Task.Run(
-                        () =>
+                        async () =>
                             {
-                                var report = new Tables.Discord.SlaveReport(
-                                    ctx.Message.Timestamp.LocalDateTime,
-                                    ctx.Message.Author,
-                                    edges,
-                                    span,
-                                    outcome);
-                                report.Save();
+                                var report = new Slavereports()
+                                {
+                                    TimeOfReport = ctx.Message.Timestamp.LocalDateTime,
+                                    UserId = Convert.ToInt64(Convert.ToInt64(ctx.Message.Author.Id)),
+                                    Edges = edges,
+                                    TimeSpan = span.Ticks,
+                                    SessionOutcome = outcome
+                                    };
+                                    
+                                await _context.SaveChangesAsync();
                             });
                 }
                 catch
@@ -281,7 +274,7 @@ namespace Sabrina.Commands
                                       Description = "That's not how this works, you gotta use one of the following:"
                                   };
 
-                foreach (string possibleOutcome in Enum.GetNames(typeof(Tables.Discord.SlaveReport.Outcome)))
+                foreach (string possibleOutcome in Enum.GetNames(typeof(SlaveReportsExtension.Outcome)))
                 {
                     builder.AddField(possibleOutcome, $"``//report {possibleOutcome} {edges} {time}``");
                 }
@@ -297,7 +290,7 @@ namespace Sabrina.Commands
 
             var responseColor = DiscordColor.Green;
 
-            if (outcome == Tables.Discord.SlaveReport.Outcome.Denial.ToString())
+            if (outcome == SlaveReportsExtension.Outcome.denial.ToString())
             {
                 Tuple<string, string>[] templates =
                     {
@@ -320,7 +313,7 @@ namespace Sabrina.Commands
                 responseColor = DiscordColor.Red;
             }
 
-            if (outcome == Tables.Discord.SlaveReport.Outcome.Ruin.ToString())
+            if (outcome == SlaveReportsExtension.Outcome.ruin.ToString())
             {
                 Tuple<string, string>[] templates =
                     {
@@ -343,7 +336,7 @@ namespace Sabrina.Commands
                 responseColor = DiscordColor.Yellow;
             }
 
-            if (outcome == Tables.Discord.SlaveReport.Outcome.Orgasm.ToString())
+            if (outcome == SlaveReportsExtension.Outcome.orgasm.ToString())
             {
                 Tuple<string, string>[] templates =
                     {
@@ -364,9 +357,9 @@ namespace Sabrina.Commands
                 responseColor = DiscordColor.Green;
             }
 
-            if (ctx.Message.Author.Id == 347004618183540740 && DateTime.Now < new DateTime(2018, 9, 13))
+            if (Convert.ToInt64(ctx.Message.Author.Id) == 347004618183540740 && DateTime.Now < new DateTime(2018, 9, 13))
             {
-                if (outcome == Tables.Discord.SlaveReport.Outcome.Denial.ToString())
+                if (outcome == SlaveReportsExtension.Outcome.denial.ToString())
                 {
                     prefix = "Enjoy your 21 days, ";
                     postfix = " . I'm sure you're having fun :)";
@@ -393,7 +386,7 @@ namespace Sabrina.Commands
                                                        }
                                       };
 
-            if (ctx.Message.Author.Id == 347004618183540740)
+            if (Convert.ToInt64(ctx.Message.Author.Id) == 347004618183540740)
             {
                 responseBuilder.Footer = new DiscordEmbedBuilder.EmbedFooter()
                                              {

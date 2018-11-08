@@ -14,39 +14,31 @@ namespace Sabrina.Commands
     using DSharpPlus.Entities;
     using Sabrina.Entities;
     using Sabrina.Entities.Persistent;
+    using Sabrina.Models;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Tables = TableObjects.Tables;
+
 
     /// <summary>
     /// The orgasm wheel Command Group.
     /// </summary>
-    internal class OrgasmWheel : BaseCommandModule
+    internal class OrgasmWheel
     {
-        /// <summary>
-        /// The dependencies.
-        /// </summary>
-        private readonly Dependencies dep;
+        public DiscordContext _context;
+
+        public OrgasmWheel(DiscordContext context)
+        {
+            _context = new DiscordContext();
+        }
 
         /// <summary>
         /// The wheel outcomes.
         /// </summary>
         private List<WheelOutcome> wheelOutcomes;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="OrgasmWheel"/> class.
-        /// </summary>
-        /// <param name="d">
-        /// The dependencies.
-        /// </param>
-        public OrgasmWheel(Dependencies d)
-        {
-            this.dep = d;
-        }
 
         /// <summary>
         /// The spin wheel Command.
@@ -63,11 +55,6 @@ namespace Sabrina.Commands
         public async Task SpinWheelAsync(CommandContext ctx)
         {
             if (ctx.Channel.Name != Configuration.Config.Channels.Wheel)
-            {
-                return;
-            }
-
-            if (await Helpers.CheckForMuted(ctx))
             {
                 return;
             }
@@ -111,7 +98,7 @@ namespace Sabrina.Commands
         /// </returns>
         [Command("addlink")]
         [Description("Add a Link to the OrgasmWheel")]
-        [RequireRolesAttribute(RoleCheckMode.Any, "mistress", "techno kitty", "content creator", "trusted creator")]
+        [RequireRolesAttribute("mistress", "techno kitty", "content creator", "trusted creator")]
         public async Task AddLinkAsync(
             CommandContext ctx,
             [Description("The Person who created the Content")]
@@ -225,25 +212,15 @@ namespace Sabrina.Commands
         [Description("Spins a wheel")]
         public async Task SpinNewWheelAsync(CommandContext ctx)
         {
-            var user = Tables.Discord.User.Load(ctx.Message.Author);
-            var settings = Tables.Discord.UserSetting.Load(ctx.Message.Author);
+            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+            var settings = _context.UserSettings.Find(Convert.ToInt64(ctx.Message.Author.Id));
 
             if (settings == null)
             {
-                settings = new Tables.Discord.UserSetting();
+                settings = new Models.UserSettings();
             }
 
-            var chances = Tables.Discord.WheelChance.Load(settings.WheelDifficulty ?? 2);
-
-            if (await Helpers.CheckForMuted(ctx))
-            {
-                return;
-            }
-
-            if (await Helpers.CheckForBanned(ctx))
-            {
-                return;
-            }
+            var chances = await _context.WheelChances.FindAsync(settings.WheelDifficulty ?? 2);
 
             if (user.LockTime != null && user.LockTime > DateTime.Now)
             {
@@ -264,7 +241,7 @@ namespace Sabrina.Commands
                         $"That means you get another {TimeResolver.TimeToString(newTimeUntilFree)} of no spinning {DiscordEmoji.FromName(ctx.Client, Configuration.Config.Emojis.Blush)}");
 
                     user.LockTime += newTimeUntilFree;
-                    user.Save();
+                    await _context.SaveChangesAsync();
                     return;
                 }
 
@@ -284,29 +261,29 @@ namespace Sabrina.Commands
             Console.WriteLine("RuinChance Chance: " + chances.Ruin);
             Console.WriteLine("OrgasmChance Chance: " + chances.Orgasm);
             Console.WriteLine("addedChance Chance: " + addedChance);
-            var outcome = Tables.Discord.SlaveReport.Outcome.Task;
+            var outcome = SlaveReportsExtension.Outcome.task;
             if (outcomeChanceValue < chances.Denial)
             {
-                outcome = Tables.Discord.SlaveReport.Outcome.Denial;
+                outcome = SlaveReportsExtension.Outcome.denial;
             }
             else if (outcomeChanceValue < chances.Denial + chances.Task)
             {
-                outcome = Tables.Discord.SlaveReport.Outcome.Task;
+                outcome = SlaveReportsExtension.Outcome.task;
             }
             else if (outcomeChanceValue < chances.Denial + chances.Task + chances.Ruin)
             {
-                outcome = Tables.Discord.SlaveReport.Outcome.Ruin;
+                outcome = SlaveReportsExtension.Outcome.ruin;
             }
             else
             {
-                outcome = Tables.Discord.SlaveReport.Outcome.Orgasm;
+                outcome = SlaveReportsExtension.Outcome.orgasm;
             }
 
             if (user.DenialTime != null && user.DenialTime > DateTime.Now)
             {
                 var timeUntilFree = user.DenialTime - DateTime.Now;
-                if (outcome.HasFlag(Tables.Discord.SlaveReport.Outcome.Orgasm)
-                    || outcome.HasFlag(Tables.Discord.SlaveReport.Outcome.Ruin))
+                if (outcome.HasFlag(SlaveReportsExtension.Outcome.orgasm)
+                    || outcome.HasFlag(SlaveReportsExtension.Outcome.ruin))
                 {
                     await ctx.RespondAsync(
                         $"Haha, I would've let you cum this time, but since you're still denied for {TimeResolver.TimeToString(timeUntilFree.Value)}, "
@@ -322,14 +299,14 @@ namespace Sabrina.Commands
 
                 }
                 await Task.Delay(1500);
-                outcome = Tables.Discord.SlaveReport.Outcome.Denial | Tables.Discord.SlaveReport.Outcome.Task;
+                outcome = SlaveReportsExtension.Outcome.denial | SlaveReportsExtension.Outcome.task;
             }
 
             WheelOutcome wheelOutcome = null;
 
             while (wheelOutcome == null)
             {
-                this.wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(outcome, settings).ToList();
+                this.wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(outcome, settings, _context).ToList();
 
                 this.wheelOutcomes = this.wheelOutcomes.Where(e => outcome.HasFlag(e.Outcome)).ToList();
 
@@ -382,7 +359,7 @@ namespace Sabrina.Commands
 
             user.DenialTime += wheelOutcome.DenialTime;
             user.LockTime += wheelOutcome.WheelLockedTime;
-            user.Save();
+            await _context.SaveChangesAsync();
 
             if (wheelOutcome.Embed != null)
             {
@@ -408,7 +385,7 @@ namespace Sabrina.Commands
         [Aliases("denieduntil")]
         public async Task DenialTimeAsync(CommandContext ctx)
         {
-            var user = Tables.Discord.User.Load(ctx.Message.Author);
+            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
 
             var denialString = "You have no denial time left.";
             var wheelLockedString = "You can spin the wheel at any time.";
@@ -427,7 +404,7 @@ namespace Sabrina.Commands
 
             }
 
-            await ctx.RespondAsync($"Hey {(await ctx.Client.GetUserAsync(user.UserId)).Mention},\n" +
+            await ctx.RespondAsync($"Hey {(await ctx.Client.GetUserAsync(Convert.ToUInt64(user.UserId))).Mention},\n" +
                                    $"{denialString}\n" +
                                    $"{wheelLockedString}");
         }
@@ -448,12 +425,18 @@ namespace Sabrina.Commands
         [Command("resetuser")]
         [Description("Reset a Users saved Data")]
         [Aliases("ru")]
-        [RequireRolesAttribute(RoleCheckMode.Any, "mistress", "minion", "techno kitty")]
+        [RequireRolesAttribute("mistress", "minion", "techno kitty")]
         public async Task RemoveProfileAsync(CommandContext ctx, [Description("Mention the user here")] DiscordUser dcUser)
         {
-            var user = Tables.Discord.User.Load(ctx.Message.Author);
+            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
 
-            user.Reset();
+            user.DenialTime = null;
+            user.BanTime = null;
+            user.LockTime = null;
+            user.SpecialTime = null;
+            user.RuinTime = null;
+
+            await _context.SaveChangesAsync();
 
             await ctx.RespondAsync($"I've reset the Profile of {dcUser.Mention}.");
         }

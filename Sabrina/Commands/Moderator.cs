@@ -13,28 +13,22 @@ using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.VoiceNext;
 
 using Sabrina.Bots;
 using Sabrina.Entities;
 using Sabrina.Entities.Persistent;
 
+using DSharpPlus.Interactivity;
+
 namespace Sabrina.Commands
 {
-    internal class Moderator : BaseCommandModule
+    internal class Moderator
     {
-        private Dependencies dep;
-
         private const string ConfirmRegex = "\\b[Yy][Ee]?[Ss]?\\b|\\b[Nn][Oo]?\\b";
         private const string YesRegex = "[Yy][Ee]?[Ss]?";
         private const string NoRegex = "[Nn][Oo]?";
 
-        public Moderator(Dependencies d)
-        {
-            this.dep = d;
-        }
-
-        [Command("movemsg"), Description("Moves a set amount of Messages from one Channel to another."), RequireRolesAttribute(RoleCheckMode.Any, "minion", "techno kitty")]
+        [Command("movemsg"), Description("Moves a set amount of Messages from one Channel to another."), RequireRolesAttribute("minion", "techno kitty")]
         [Aliases(new[] { "shitpost" })]
         [RequirePermissions(DSharpPlus.Permissions.ManageMessages)]
         public async Task MoveMsgAsync(CommandContext ctx, [Description("The Channel to move to")] DiscordChannel channel, [Description("Amount of Messages to move")] int msg)
@@ -91,14 +85,14 @@ namespace Sabrina.Commands
 
                 memory.Position = 0;
 
-                await channel.SendFileAsync("ChatArchive.jpeg", memory);
+                await channel.SendFileAsync(memory, "ChatArchive.jpeg");
             }
 
             await ctx.Channel.DeleteMessagesAsync(messagesList);
             await ctx.RespondAsync($"I moved some Stuff to {channel.Mention}");
         }
 
-        [Command("purge"), Description("Removes X Messages"), RequireRolesAttribute(RoleCheckMode.Any, "mistress", "minion", "techno kitty")]
+        [Command("purge"), Description("Removes X Messages"), RequireRolesAttribute("mistress", "minion", "techno kitty")]
         [RequirePermissions(DSharpPlus.Permissions.ManageMessages)]
         public async Task PurgeMessages(CommandContext ctx, [Description("Amount of Messages to move")] int msgAmount)
         {
@@ -109,8 +103,9 @@ namespace Sabrina.Commands
         [RequirePermissions(DSharpPlus.Permissions.ManageMessages)]
         public async Task CrashTask(CommandContext ctx)
         {
+            var interactivity = ctx.Client.GetInteractivityModule();
             await ctx.RespondAsync("Are you sure?");
-            var m = await this.dep.Interactivity.WaitForMessageAsync(
+            var m = await interactivity.WaitForMessageAsync(
                 x => x.Channel.Id == ctx.Channel.Id
                      && x.Author.Id == ctx.Member.Id
                      && Regex.IsMatch(x.Content, ConfirmRegex), TimeSpan.FromSeconds(60));
@@ -124,7 +119,7 @@ namespace Sabrina.Commands
             while (m != null && Regex.IsMatch(m.Message.Content, YesRegex))
             {
                 await ctx.RespondAsync(possibleQuestions[Helpers.RandomGenerator.RandomInt(0, possibleQuestions.Length)]);
-                m = await this.dep.Interactivity.WaitForMessageAsync(
+                m = await interactivity.WaitForMessageAsync(
                     x => x.Channel.Id == ctx.Channel.Id
                          && x.Author.Id == ctx.Member.Id
                          && Regex.IsMatch(x.Content, ConfirmRegex), TimeSpan.FromSeconds(60));

@@ -59,7 +59,7 @@ namespace Sabrina.Commands.KinkList
                                      $"VALUES (@UserID, @Hash)",
                     conn);
 
-                cmd.Parameters.Add("@UserID", SqlDbType.Decimal).Value = ctx.Message.Author.Id;
+                cmd.Parameters.Add("@UserID", SqlDbType.Decimal).Value = Convert.ToInt64(ctx.Message.Author.Id);
                 cmd.Parameters.Add("@Hash", SqlDbType.NText).Value = newHash;
 
                 try

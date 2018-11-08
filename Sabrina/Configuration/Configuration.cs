@@ -42,6 +42,8 @@ namespace Configuration
         public static class Users
         {
             public const ulong Aki = 335437183127257089ul;
+            public const ulong Weyui = 193029284376346624ul;
+            public const ulong Salem = 249216025931939841ul;
         }
 
         public static class Emojis
@@ -55,9 +57,18 @@ namespace Configuration
 
         public static class Pornhub
         {
-            public static string[] Channels = new[] { "youranimeaddiction", "damitrix", "mosbles", "milkduds46", "elukajoi", "pjsx" };
+            public static string[] Channels = new[] { "youranimeaddiction", "damitrix", "mosbles", "milkduds46", "elukajoi", "pjsx", "konekosalem" };
 
-            public static ulong[] ChannelsToPostTo = new[] { 457465277395894273ul };
+            public static ulong[] ChannelsToPostTo { 
+                    get
+                    {
+#if (DEBUG)
+                        return new[] { 450793619398459432ul };
+#else
+                    return new[] { 457465277395894273ul };
+#endif
+                    } 
+                }
 
             public static string IndexedVideoLocation = $"{BotFileFolders.MainFolder}/PornhubVideos";
         }
