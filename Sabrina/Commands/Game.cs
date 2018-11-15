@@ -1,38 +1,32 @@
-﻿using System;
+﻿using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Interactivity;
+using Sabrina.Entities;
+using Sabrina.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-using Sabrina.Entities;
-using DSharpPlus.Interactivity;
-using Sabrina.Entities.Persistent;
-using Sabrina.Models;
 
 namespace Sabrina.Commands
 {
-
-
     [Group("game")]
     [Aliases("i")]
     public class Game
     {
-        private DiscordContext _context;
+        private const string ConfirmRegex = "\\b[Yy][Ee]?[Ss]?\\b|\\b[Nn][Oo]?\\b";
+        private const string HitRegex = "[Hh][Ii][Tt]?";
+        private const string HitStayRegex = "\\b[Hh][Ii][Tt]?\\b|\\b[Ss][Tt][Aa][Nn][Dd]?\\b";
+        private const string NoRegex = "[Nn][Oo]?";
+        private const string StandRegex = "[Ss][Tt][Aa][Nn][Dd]?";
+        private const string YesRegex = "[Yy][Ee]?[Ss]?";
+        private readonly DiscordContext _context;
 
         public Game(DiscordContext context)
         {
             _context = new DiscordContext();
         }
-
-        private const string HitStayRegex = "\\b[Hh][Ii][Tt]?\\b|\\b[Ss][Tt][Aa][Nn][Dd]?\\b";
-        private const string HitRegex = "[Hh][Ii][Tt]?";
-        private const string StandRegex = "[Ss][Tt][Aa][Nn][Dd]?";
-
-        private const string ConfirmRegex = "\\b[Yy][Ee]?[Ss]?\\b|\\b[Nn][Oo]?\\b";
-        private const string YesRegex = "[Yy][Ee]?[Ss]?";
-        private const string NoRegex = "[Nn][Oo]?";
 
         [Command("blackjack")]
         [Description("Play BlackJack to gamble for reduced Edges")]
@@ -261,20 +255,19 @@ namespace Sabrina.Commands
 
     internal class BlackJackGame
     {
-        public enum GameOutcome
-        {
-            Undecided,
-            Won,
-            Lost
-        }
+        public List<Card> Deck = new List<Card>(104);
+
+        public List<Card> HouseCards = new List<Card>();
+
+        public bool PlayerBusts;
+
+        public List<Card> PlayerCards = new List<Card>();
 
         private readonly Users user;
-        private CommandContext ctx;
-        public List<Card> Deck = new List<Card>(104);
-        public List<Card> HouseCards = new List<Card>();
-        public bool PlayerBusts;
-        public List<Card> PlayerCards = new List<Card>();
+
         private DiscordContext _context;
+
+        private readonly CommandContext ctx;
 
         public BlackJackGame(int betEdges, CommandContext ctx, DiscordContext context)
         {
@@ -298,76 +291,14 @@ namespace Sabrina.Commands
             }
         }
 
+        public enum GameOutcome
+        {
+            Undecided,
+            Won,
+            Lost
+        }
+
         public int BetEdges { get; }
-
-        public async void OnWin()
-        {
-            this.user.WalletEdges -= this.BetEdges;
-            await _context.SaveChangesAsync();
-            await this.ctx.RespondAsync(
-                $"You Win! {PostFixes.Good[Helpers.RandomGenerator.RandomInt(0, PostFixes.Good.Length)]}{Environment.NewLine}" +
-                $"I will deduct {this.BetEdges} edges from your balance.{Environment.NewLine}" +
-                $"You now have {this.user.WalletEdges}");
-        }
-
-        public async void OnLoose()
-        {
-            this.user.WalletEdges += this.BetEdges;
-            await _context.SaveChangesAsync();
-            await this.ctx.RespondAsync(
-                $"You Lose! {PostFixes.Bad[Helpers.RandomGenerator.RandomInt(0, PostFixes.Bad.Length)]}{Environment.NewLine}" +
-                $"I will add {this.BetEdges} edges to your balance.{Environment.NewLine}" +
-                $"You now have {this.user.WalletEdges}");
-        }
-
-        public async void OnNeutral()
-        {
-            await this.ctx.RespondAsync(
-                $"You Win! No, You Loose! uhhh... neither. {PostFixes.Neutral[Helpers.RandomGenerator.RandomInt(0, PostFixes.Neutral.Length)]}{Environment.NewLine}" +
-                $"You still have {this.user.WalletEdges} edges.");
-        }
-
-        public async void OnSpecialWin()
-        {
-            this.user.WalletEdges -= this.BetEdges / 5 * 3;
-            await _context.SaveChangesAsync();
-            await this.ctx.RespondAsync(
-                $"You Win! {PostFixes.Special[Helpers.RandomGenerator.RandomInt(0, PostFixes.Special.Length)]}{Environment.NewLine}" +
-                $"I will deduct {this.BetEdges / 5 * 3} edges from your balance.{Environment.NewLine}" +
-                $"You now have {this.user.WalletEdges}");
-        }
-
-        public static bool IsBlackJack(List<Card> cards)
-        {
-            return GetMaxSumWithoutOvershoot(cards) == 21 && cards.Any(e => e.Value == Card.CardValue.Ace);
-        }
-
-        public static bool HasAce(List<Card> cards)
-        {
-            return cards.Any(e => e.Value == Card.CardValue.Ace);
-        }
-
-        public void DrawCardPlayer()
-        {
-            this.PlayerCards.Add(this.Deck.Skip(Helpers.RandomGenerator.RandomInt(0, this.Deck.Count)).Take(1).First());
-
-            if (GetMinSum(this.PlayerCards) > 21) this.PlayerBusts = true;
-        }
-
-        public void DrawCardHouse()
-        {
-            this.HouseCards.Add(this.Deck.Skip(Helpers.RandomGenerator.RandomInt(0, this.Deck.Count)).Take(1).First());
-        }
-
-        public static int GetMinSum(List<Card> cards)
-        {
-            var sum = 0;
-
-            foreach (var card in cards)
-                sum += (int)card.Value < 11 ? (int)card.Value : 10;
-
-            return sum;
-        }
 
         public static int GetMaxSum(List<Card> cards)
         {
@@ -411,24 +342,81 @@ namespace Sabrina.Commands
             return sum;
         }
 
-        private static class PostFixes
+        public static int GetMinSum(List<Card> cards)
         {
-            public static readonly string[] Bad =
-                {"Hehe.", "Don't worry, you can get that back later :)", "No luck for you."};
+            var sum = 0;
 
-            public static readonly string[] Good = { "Yay!", "Nice!", "You've just got lucky..." };
-            public static readonly string[] Neutral = { "huh... that's lame.", "ok...", "ehhh...." };
+            foreach (var card in cards)
+                sum += (int)card.Value < 11 ? (int)card.Value : 10;
 
-            public static readonly string[] Special =
-            {
-                "I can give you 3 Rubber Ducks for that.",
-                "Great, you've won... how 'bout you tell people in #general-chat-1 from your immense victory now? ._.",
-                "I'm sure Aki has something to make up for it :J"
-            };
+            return sum;
+        }
+
+        public static bool HasAce(List<Card> cards)
+        {
+            return cards.Any(e => e.Value == Card.CardValue.Ace);
+        }
+
+        public static bool IsBlackJack(List<Card> cards)
+        {
+            return GetMaxSumWithoutOvershoot(cards) == 21 && cards.Any(e => e.Value == Card.CardValue.Ace);
+        }
+
+        public void DrawCardHouse()
+        {
+            this.HouseCards.Add(this.Deck.Skip(Helpers.RandomGenerator.RandomInt(0, this.Deck.Count)).Take(1).First());
+        }
+
+        public void DrawCardPlayer()
+        {
+            this.PlayerCards.Add(this.Deck.Skip(Helpers.RandomGenerator.RandomInt(0, this.Deck.Count)).Take(1).First());
+
+            if (GetMinSum(this.PlayerCards) > 21) this.PlayerBusts = true;
+        }
+
+        public async void OnLoose()
+        {
+            this.user.WalletEdges += this.BetEdges;
+            await _context.SaveChangesAsync();
+            await this.ctx.RespondAsync(
+                $"You Lose! {PostFixes.Bad[Helpers.RandomGenerator.RandomInt(0, PostFixes.Bad.Length)]}{Environment.NewLine}" +
+                $"I will add {this.BetEdges} edges to your balance.{Environment.NewLine}" +
+                $"You now have {this.user.WalletEdges}");
+        }
+
+        public async void OnNeutral()
+        {
+            await this.ctx.RespondAsync(
+                $"You Win! No, You Loose! uhhh... neither. {PostFixes.Neutral[Helpers.RandomGenerator.RandomInt(0, PostFixes.Neutral.Length)]}{Environment.NewLine}" +
+                $"You still have {this.user.WalletEdges} edges.");
+        }
+
+        public async void OnSpecialWin()
+        {
+            this.user.WalletEdges -= this.BetEdges / 5 * 3;
+            await _context.SaveChangesAsync();
+            await this.ctx.RespondAsync(
+                $"You Win! {PostFixes.Special[Helpers.RandomGenerator.RandomInt(0, PostFixes.Special.Length)]}{Environment.NewLine}" +
+                $"I will deduct {this.BetEdges / 5 * 3} edges from your balance.{Environment.NewLine}" +
+                $"You now have {this.user.WalletEdges}");
+        }
+
+        public async void OnWin()
+        {
+            this.user.WalletEdges -= this.BetEdges;
+            await _context.SaveChangesAsync();
+            await this.ctx.RespondAsync(
+                $"You Win! {PostFixes.Good[Helpers.RandomGenerator.RandomInt(0, PostFixes.Good.Length)]}{Environment.NewLine}" +
+                $"I will deduct {this.BetEdges} edges from your balance.{Environment.NewLine}" +
+                $"You now have {this.user.WalletEdges}");
         }
 
         public class Card
         {
+            public CardValue Value;
+
+            public CardVariation Variation;
+
             public enum CardValue
             {
                 Ace = 1,
@@ -453,9 +441,22 @@ namespace Sabrina.Commands
                 Clubs,
                 Hearts
             }
+        }
 
-            public CardValue Value;
-            public CardVariation Variation;
+        private static class PostFixes
+        {
+            public static readonly string[] Bad =
+                {"Hehe.", "Don't worry, you can get that back later :)", "No luck for you."};
+
+            public static readonly string[] Good = { "Yay!", "Nice!", "You've just got lucky..." };
+            public static readonly string[] Neutral = { "huh... that's lame.", "ok...", "ehhh...." };
+
+            public static readonly string[] Special =
+            {
+                "I can give you 3 Rubber Ducks for that.",
+                "Great, you've won... how 'bout you tell people in #general-chat-1 from your immense victory now? ._.",
+                "I'm sure Aki has something to make up for it :J"
+            };
         }
     }
 }

@@ -1,26 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Globalization;
-using System.IO;
-using System.Threading.Tasks;
-using Configuration;
+﻿using Configuration;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Sabrina.Entities;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Sabrina.Commands.KinkList
 {
     public class KinkList
     {
-        private static readonly Int64 MaxSafeNumber = 9007199254740991;
-
         private static readonly string HashChars =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.=+*^!@";
+
+        private static readonly Int64 MaxSafeNumber = 9007199254740991;
 
         private enum Colors
         {
@@ -31,48 +27,6 @@ namespace Sabrina.Commands.KinkList
             Maybe,
             No,
         };
-
-        [Command("setHash")]
-        [Description("Set your own Hash")]
-        public async Task SetKinkList(CommandContext ctx, string hash)
-        {
-            if (!hash.StartsWith(@"``#") && !hash.StartsWith(@"```#"))
-            {
-                await ctx.RespondAsync("Please pass only the Hash and use codeblocks: `` `` ``\n" +
-                                       "so ``https://cdn.rawgit.com/Goctionni/KinkList/master/v1.0.2.html#FLTg^zsr=3suNk3IMuiSxnMTaQJBkVb@KAwAdk.lR!neldDd36*Vjm6RX2syjEtp++uVi*LEFO_loYPSaabl5mWB``\n" +
-                                       "is ``#FLTg^zsr=3suNk3IMuiSxnMTaQJBkVb@KAwAdk.lR!neldDd36*Vjm6RX2syjEtp++uVi*LEFO_loYPSaabl5mWB``");
-                return;
-            }
-
-            string newHash = hash.Trim('`');
-
-            using (var conn = new SqlConnection(Config.DataBaseConnectionString))
-            {
-                await conn.OpenAsync();
-
-                SqlCommand cmd = new SqlCommand();
-                cmd = new SqlCommand($"IF EXISTS (SELECT * FROM KinkHashes WHERE UserID = @UserID)" + Environment.NewLine +
-                                     $"  UPDATE KinkHashes SET Hash = @Hash " +
-                                     Environment.NewLine +
-                                     $"ELSE" + Environment.NewLine +
-                                     $"  INSERT INTO KinkHashes (UserID, Hash) " +
-                                     $"VALUES (@UserID, @Hash)",
-                    conn);
-
-                cmd.Parameters.Add("@UserID", SqlDbType.Decimal).Value = Convert.ToInt64(ctx.Message.Author.Id);
-                cmd.Parameters.Add("@Hash", SqlDbType.NText).Value = newHash;
-
-                try
-                {
-                    await cmd.ExecuteNonQueryAsync();
-                    await ctx.RespondAsync("Saved.");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-            }
-        }
 
         [Command("getKink")]
         [Aliases("getkinks", "kink")]
@@ -162,6 +116,48 @@ namespace Sabrina.Commands.KinkList
             if (newhash.Length < 10) return null;
 
             return this.Decode(Enum.GetNames(typeof(Colors)).Length, newhash);
+        }
+
+        [Command("setHash")]
+        [Description("Set your own Hash")]
+        public async Task SetKinkList(CommandContext ctx, string hash)
+        {
+            if (!hash.StartsWith(@"``#") && !hash.StartsWith(@"```#"))
+            {
+                await ctx.RespondAsync("Please pass only the Hash and use codeblocks: `` `` ``\n" +
+                                       "so ``https://cdn.rawgit.com/Goctionni/KinkList/master/v1.0.2.html#FLTg^zsr=3suNk3IMuiSxnMTaQJBkVb@KAwAdk.lR!neldDd36*Vjm6RX2syjEtp++uVi*LEFO_loYPSaabl5mWB``\n" +
+                                       "is ``#FLTg^zsr=3suNk3IMuiSxnMTaQJBkVb@KAwAdk.lR!neldDd36*Vjm6RX2syjEtp++uVi*LEFO_loYPSaabl5mWB``");
+                return;
+            }
+
+            string newHash = hash.Trim('`');
+
+            using (var conn = new SqlConnection(Config.DataBaseConnectionString))
+            {
+                await conn.OpenAsync();
+
+                SqlCommand cmd = new SqlCommand();
+                cmd = new SqlCommand($"IF EXISTS (SELECT * FROM KinkHashes WHERE UserID = @UserID)" + Environment.NewLine +
+                                     $"  UPDATE KinkHashes SET Hash = @Hash " +
+                                     Environment.NewLine +
+                                     $"ELSE" + Environment.NewLine +
+                                     $"  INSERT INTO KinkHashes (UserID, Hash) " +
+                                     $"VALUES (@UserID, @Hash)",
+                    conn);
+
+                cmd.Parameters.Add("@UserID", SqlDbType.Decimal).Value = Convert.ToInt64(ctx.Message.Author.Id);
+                cmd.Parameters.Add("@Hash", SqlDbType.NText).Value = newHash;
+
+                try
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                    await ctx.RespondAsync("Saved.");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
         }
 
         private int[] Decode(int colorLength, string hash)
@@ -271,10 +267,10 @@ namespace Sabrina.Commands.KinkList
 
         private class KinkName
         {
-            public string Name;
             public string Category;
             public string Column;
             public int ColumnSide;
+            public string Name;
         }
     }
 }

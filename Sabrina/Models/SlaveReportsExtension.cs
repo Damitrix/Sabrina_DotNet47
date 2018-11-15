@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Sabrina.Models
 {
-    class SlaveReportsExtension
+    internal class SlaveReportsExtension
     {
         public enum Outcome
         {
@@ -16,15 +12,6 @@ namespace Sabrina.Models
             task = 8
         }
 
-        [Flags]
-        public enum WheelTaskPreferenceSetting
-        {
-            Default,
-            Task,
-            Time,
-            Amount
-        }
-
         public enum WheelDifficultyPreference
         {
             Baby,
@@ -32,6 +19,15 @@ namespace Sabrina.Models
             Default,
             Hard,
             Masterbater
+        }
+
+        [Flags]
+        public enum WheelTaskPreferenceSetting
+        {
+            Default,
+            Task,
+            Time,
+            Amount
         }
     }
 }

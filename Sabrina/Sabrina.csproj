@@ -243,11 +243,6 @@
     <Compile Include="Commands\Save-Instructions.cs" />
     <Compile Include="Commands\Settings.cs" />
     <Compile Include="Dungeon\Rooms\Room.cs" />
-    <Compile Include="Dungeon\Rooms\Task\Boss\Boss.cs" />
-    <Compile Include="Dungeon\Rooms\Task\LesserMob\LesserMob.cs" />
-    <Compile Include="Dungeon\Rooms\Task\LesserMob\SimpleEdgeTask.cs" />
-    <Compile Include="Dungeon\Rooms\Task\LesserMob\SimpleStrokeTask.cs" />
-    <Compile Include="Dungeon\Rooms\Task\Task.cs" />
     <Compile Include="Dungeon\Dungeon.cs" />
     <Compile Include="Dungeon\GameBalance.cs" />
     <Compile Include="Entities\Helpers.cs" />
@@ -264,10 +259,15 @@
     <Compile Include="Entities\StartTimes.cs" />
     <Compile Include="Entities\TimeResolver.cs" />
     <Compile Include="Bots\PornhubBot.cs" />
+    <Compile Include="Models\DBPassword.cs" />
     <Compile Include="Models\DiscordContext.cs" />
+    <Compile Include="Models\DungeonMob.cs" />
+    <Compile Include="Models\DungeonSession.cs" />
+    <Compile Include="Models\DungeonSessionExtension.cs" />
     <Compile Include="Models\DungeonText.cs" />
-    <Compile Include="Models\DungeonVariablesConnection.cs" />
-    <Compile Include="Models\DungeonVariablesVariables.cs" />
+    <Compile Include="Models\DungeonTextExtension.cs" />
+    <Compile Include="Models\DungeonVariable.cs" />
+    <Compile Include="Models\DungeonVariableExtension.cs" />
     <Compile Include="Models\KinkHashes.cs" />
     <Compile Include="Models\Messages.cs" />
     <Compile Include="Models\PornhubVideos.cs" />
@@ -278,6 +278,7 @@
     <Compile Include="Models\TumblrPosts.cs" />
     <Compile Include="Models\Users.cs" />
     <Compile Include="Models\UserSettings.cs" />
+    <Compile Include="Models\UserSettingsExtension.cs" />
     <Compile Include="Models\WheelChances.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -289,11 +290,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Dungeon\Rooms\Finish\" />
-    <Folder Include="Dungeon\Rooms\Loot\" />
-    <Folder Include="Dungeon\Rooms\Start\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Commands\KinkList\KinkList.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

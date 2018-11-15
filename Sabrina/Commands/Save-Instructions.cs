@@ -11,20 +11,16 @@ using Configuration;
 
 namespace Sabrina.Commands
 {
+    using DSharpPlus.CommandsNext;
+    using DSharpPlus.CommandsNext.Attributes;
+    using DSharpPlus.Entities;
+    using Sabrina.Entities;
+    using Sabrina.Models;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Threading.Tasks;
-
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-
-    using Sabrina.Entities;
-    using Sabrina.Models;
-
-
 
     /// <summary>
     /// The slave instructions command group.
@@ -32,6 +28,7 @@ namespace Sabrina.Commands
     internal class SlaveInstructions
     {
         private DiscordContext _context;
+
         public SlaveInstructions(DiscordContext context)
         {
             _context = new DiscordContext();
@@ -92,12 +89,13 @@ namespace Sabrina.Commands
                 {
                     var currentUser = await ctx.Client.GetUserAsync(Convert.ToUInt64(userReports.Item1));
                     var builder = new DiscordEmbedBuilder
-                                      {
-                                          Author = new DiscordEmbedBuilder.EmbedAuthor
-                                                       {
-                                                           Name = currentUser.Username, IconUrl = currentUser.AvatarUrl
-                                                       }
-                                      };
+                    {
+                        Author = new DiscordEmbedBuilder.EmbedAuthor
+                        {
+                            Name = currentUser.Username,
+                            IconUrl = currentUser.AvatarUrl
+                        }
+                    };
 
                     builder.AddField("Sum of edges", userReports.Item2.Sum(report => report.Edges).ToString());
 
@@ -217,7 +215,7 @@ namespace Sabrina.Commands
                     {
                         await ctx.RespondAsync(
                             $"You can only report once every 8 hours. You can report again in {TimeResolver.TimeToString(lastReport.TimeOfReport.AddHours(8) - DateTime.Now)}");
-                        var dm = await(await ctx.Guild.GetMemberAsync(Config.Users.Aki)).CreateDmChannelAsync();
+                        var dm = await (await ctx.Guild.GetMemberAsync(Config.Users.Aki)).CreateDmChannelAsync();
                         await dm.SendMessageAsync(
                             $"{ctx.Message.Author} has reported {TimeResolver.TimeToString(lastReport.TimeOfReport.AddHours(8) - DateTime.Now)} too early.");
                         return;
@@ -242,20 +240,20 @@ namespace Sabrina.Commands
                                     Edges = edges,
                                     TimeSpan = span.Ticks,
                                     SessionOutcome = outcome
-                                    };
-                                    
+                                };
+
                                 await _context.SaveChangesAsync();
                             });
                 }
                 catch
                 {
                     var builder = new DiscordEmbedBuilder
-                                      {
-                                          Title = "Error",
-                                          Description =
+                    {
+                        Title = "Error",
+                        Description =
                                               "That's not how this works, you can enter your time in one of the following formats:",
-                                          Footer = new DiscordEmbedBuilder.EmbedFooter { Text = "You get the Idea..." }
-                                      };
+                        Footer = new DiscordEmbedBuilder.EmbedFooter { Text = "You get the Idea..." }
+                    };
 
                     builder.AddField("1h5m12s", "1 hour, 5 minutes, 12 seconds");
                     builder.AddField("5m", "5 minutes");
@@ -269,10 +267,10 @@ namespace Sabrina.Commands
             else
             {
                 var builder = new DiscordEmbedBuilder
-                                  {
-                                      Title = "Error",
-                                      Description = "That's not how this works, you gotta use one of the following:"
-                                  };
+                {
+                    Title = "Error",
+                    Description = "That's not how this works, you gotta use one of the following:"
+                };
 
                 foreach (string possibleOutcome in Enum.GetNames(typeof(SlaveReportsExtension.Outcome)))
                 {
@@ -373,25 +371,26 @@ namespace Sabrina.Commands
             }
 
             var responseBuilder = new DiscordEmbedBuilder
-                                      {
-                                          Author = new DiscordEmbedBuilder.EmbedAuthor
-                                                       {
-                                                           Name = ctx.User.Username, IconUrl = ctx.User.AvatarUrl
-                                                       },
-                                          Color = responseColor,
-                                          Description = string.Format(formatText, prefix, name, postfix),
-                                          Footer = new DiscordEmbedBuilder.EmbedFooter
-                                                       {
-                                                           Text = "You can report back in 20 hours"
-                                                       }
-                                      };
+            {
+                Author = new DiscordEmbedBuilder.EmbedAuthor
+                {
+                    Name = ctx.User.Username,
+                    IconUrl = ctx.User.AvatarUrl
+                },
+                Color = responseColor,
+                Description = string.Format(formatText, prefix, name, postfix),
+                Footer = new DiscordEmbedBuilder.EmbedFooter
+                {
+                    Text = "You can report back in 20 hours"
+                }
+            };
 
             if (Convert.ToInt64(ctx.Message.Author.Id) == 347004618183540740)
             {
                 responseBuilder.Footer = new DiscordEmbedBuilder.EmbedFooter()
-                                             {
-                                                 Text = "You can report back in 8 hours"
-                                             };
+                {
+                    Text = "You can report back in 8 hours"
+                };
             }
 
             await ctx.RespondAsync(embed: responseBuilder.Build());

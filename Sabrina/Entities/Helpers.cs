@@ -7,28 +7,23 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-
-
 namespace Sabrina.Entities
 {
     using System;
-    using System.Linq;
     using System.Security.Cryptography;
-    using System.Threading.Tasks;
-
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.EventArgs;
-
-    using Sabrina.Entities.Persistent;
-
-
 
     /// <summary>
     /// An helper class
     /// </summary>
     public static class Helpers
     {
+        public static class RegexHelper
+        {
+            public const string ConfirmRegex = "\\b[Yy][Ee]?[Ss]?\\b|\\b[Nn][Oo]?\\b";
+            public const string NoRegex = "[Nn][Oo]?";
+            public const string YesRegex = "[Yy][Ee]?[Ss]?";
+        }
+
         public static class RandomGenerator
         {
             private static readonly RNGCryptoServiceProvider Rand = new RNGCryptoServiceProvider();

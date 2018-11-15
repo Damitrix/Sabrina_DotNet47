@@ -12,13 +12,11 @@ namespace Sabrina.Commands
     using DSharpPlus.CommandsNext;
     using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
-    using Sabrina.Entities;
+    using DSharpPlus.Interactivity;
+    using Sabrina.Models;
     using System;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-
-    using DSharpPlus.Interactivity;
-    using Sabrina.Models;
 
     /// <summary>
     /// The settings.
@@ -27,25 +25,27 @@ namespace Sabrina.Commands
     [Aliases("setting")]
     internal class Settings
     {
-        private DiscordContext _context;
-        public Settings(DiscordContext context)
-        {
-            _context = new DiscordContext();
-        }
         /// <summary>
         /// The confirm regex.
         /// </summary>
         private const string ConfirmRegex = "\\b[Yy][Ee]?[Ss]?\\b|\\b[Nn][Oo]?\\b";
 
         /// <summary>
+        /// The no regex.
+        /// </summary>
+        private const string NoRegex = "[Nn][Oo]?";
+
+        /// <summary>
         /// The yes regex.
         /// </summary>
         private const string YesRegex = "[Yy][Ee]?[Ss]?";
 
-        /// <summary>
-        /// The no regex.
-        /// </summary>
-        private const string NoRegex = "[Nn][Oo]?";
+        private DiscordContext _context;
+
+        public Settings(DiscordContext context)
+        {
+            _context = new DiscordContext();
+        }
 
         /// <summary>
         /// Setup Settings and similar for the current User.
@@ -61,6 +61,8 @@ namespace Sabrina.Commands
         [Description("Configure your Settings")]
         public async Task SetupAsync(CommandContext ctx)
         {
+            await ctx.RespondAsync("DM's :)");
+
             var dm = await ctx.Member.CreateDmChannelAsync();
 
             await dm.SendMessageAsync($"Hey there {ctx.Message.Author.Username}.");

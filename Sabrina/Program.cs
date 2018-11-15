@@ -11,6 +11,14 @@ using Configuration;
 
 namespace Sabrina
 {
+    using DSharpPlus;
+    using DSharpPlus.CommandsNext;
+    using DSharpPlus.Entities;
+    using DSharpPlus.EventArgs;
+    using DSharpPlus.Interactivity;
+    using Models;
+    using Sabrina.Bots;
+    using Sabrina.Pornhub;
     using System;
     using System.Data;
     using System.Data.SqlClient;
@@ -18,40 +26,21 @@ namespace Sabrina
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
-    using System.Threading;
     using System.Threading.Tasks;
-
-    using DSharpPlus;
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.Entities;
-    using DSharpPlus.EventArgs;
-    using DSharpPlus.Interactivity;
-
-    using Sabrina.Bots;
-    using Sabrina.Entities;
-    using Sabrina.Pornhub;
-    using Microsoft.Extensions.DependencyInjection;
-
-    using Models;
 
     internal class Program
     {
         private const string Prefix = "//";
 
+        private DiscordContext _context;
         private DiscordClient client;
 
+        private SqlConnection conn;
+        private TumblrBot tmblrBot;
         public CommandsNextModule Commands { get; set; }
 
         public InteractivityModule Interactivity { get; set; }
-
-        private SqlConnection conn;
-
-        private TumblrBot tmblrBot;
-
         public object Voice { get; private set; }
-
-        DiscordContext _context;
 
         /// <summary>
         /// The main.
@@ -94,7 +83,7 @@ namespace Sabrina
             await this.conn.OpenAsync();
 
             await this.client.UpdateStatusAsync(new DiscordGame("Feetsies"), UserStatus.Online);
-            
+
             // TODO: Looks weird, cause unused.
             PornhubBot pornhubBot = new PornhubBot(this.client);
 
@@ -132,7 +121,7 @@ namespace Sabrina
         {
             if (e.Member.Id == 450771319479599114)
             {
-                await(await e.Guild.GetMemberAsync(450771319479599114)).ModifyAsync(
+                await (await e.Guild.GetMemberAsync(450771319479599114)).ModifyAsync(
                     nickname: "Sabrina");
             }
         }
@@ -175,7 +164,7 @@ namespace Sabrina
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -238,14 +227,14 @@ namespace Sabrina
         private void SetCommands()
         {
             var ccfg = new CommandsNextConfiguration()
-                    {
-                        CaseSensitive = false,
-                        EnableDefaultHelp = true,
-                        EnableDms = false,
-                        EnableMentionPrefix = true,
-                        IgnoreExtraArguments = true,
-                        StringPrefix = Prefix,
-                    };
+            {
+                CaseSensitive = false,
+                EnableDefaultHelp = true,
+                EnableDms = false,
+                EnableMentionPrefix = true,
+                IgnoreExtraArguments = true,
+                StringPrefix = Prefix,
+            };
 
             var colBuilder = new DependencyCollectionBuilder();
 
@@ -258,39 +247,38 @@ namespace Sabrina
 
             this.Commands = this.client.UseCommandsNext(ccfg);
 
-            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && t.Namespace == "Sabrina.Commands"))
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && t.Namespace == "Sabrina.Commands" && t.DeclaringType == null))
             {
-                if (type == null || type.Name == "BlackJackGame" || type.IsAbstract || type.CustomAttributes.Count() > 0) //Really shitty solution, but im lazy
+                if (type == null || type.Name == "BlackJackGame" || type.IsAbstract || type.FullName == "Sabrina.Commands.Edges+<AssignEdgesAsync>d__2") //Really shitty solution, but im lazy
                 {
                     continue;
                 }
-
+                var info = type.GetTypeInfo();
                 this.Commands.RegisterCommands(type);
             }
         }
 
-
         private void SetConfig()
         {
             var config = new DiscordConfiguration
-                             {
-                                 AutoReconnect = true,
-                                 MessageCacheSize = 2048,
-                                 LogLevel = LogLevel.Debug,
-                                 Token = Config.Token,
-                                 TokenType = TokenType.Bot,
-                                 UseInternalLogHandler = true
-                             };
-            
+            {
+                AutoReconnect = true,
+                MessageCacheSize = 2048,
+                LogLevel = LogLevel.Debug,
+                Token = Config.Token,
+                TokenType = TokenType.Bot,
+                UseInternalLogHandler = true
+            };
+
             this.client = new DiscordClient(config);
 
             this.Interactivity = this.client.UseInteractivity(
                 new InteractivityConfiguration()
-                    {
-                        PaginationBehaviour = TimeoutBehaviour.Default,
-                        PaginationTimeout = TimeSpan.FromSeconds(30),
-                        Timeout = TimeSpan.FromSeconds(30)
-                    });
+                {
+                    PaginationBehaviour = TimeoutBehaviour.Default,
+                    PaginationTimeout = TimeSpan.FromSeconds(30),
+                    Timeout = TimeSpan.FromSeconds(30)
+                });
         }
     }
 }

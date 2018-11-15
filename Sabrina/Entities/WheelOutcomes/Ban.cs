@@ -9,29 +9,18 @@
 
 namespace Sabrina.Entities.WheelOutcomes
 {
-    using System;
-
     using DSharpPlus.Entities;
-
     using Sabrina.Entities.Persistent;
     using Sabrina.Models;
+    using System;
 
     internal sealed class Ban : WheelOutcome
     {
-        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
-        public override TimeSpan DenialTime { get; protected set; }
-        public override TimeSpan WheelLockedTime { get; protected set; }
-        public override string Text { get; protected set; }
-        public override DiscordEmbed Embed { get; protected set; }
-        public override int Chance { get; protected set; } = 10;
-
         private static string[] bans = new[] { "all porn besides anime/hentai", "all porn besides foot-related porn" };
-
-        private readonly int minBanTime = 2;
         private readonly int maxBanTime = 7 + 1;
-
-        private readonly int minEdgeAmount = 7;
         private readonly int maxEdgeAmount = 15 + 1;
+        private readonly int minBanTime = 2;
+        private readonly int minEdgeAmount = 7;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Ban"/> class.
@@ -105,5 +94,12 @@ namespace Sabrina.Entities.WheelOutcomes
             this.Embed = builder.Build();
             this.Outcome = SlaveReportsExtension.Outcome.task;
         }
+
+        public override int Chance { get; protected set; } = 10;
+        public override TimeSpan DenialTime { get; protected set; }
+        public override DiscordEmbed Embed { get; protected set; }
+        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
+        public override string Text { get; protected set; }
+        public override TimeSpan WheelLockedTime { get; protected set; }
     }
 }

@@ -8,6 +8,8 @@ namespace Sabrina.Models
         public long UserId { get; set; }
         public int? WheelDifficulty { get; set; }
         public int? WheelTaskPreference { get; set; }
+        public int? DungeonDifficulty { get; set; }
+        public int? DungeonLevel { get; set; }
 
         public Users User { get; set; }
     }

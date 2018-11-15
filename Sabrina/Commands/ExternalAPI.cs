@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using DSharpPlus.CommandsNext;
+﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Sabrina.Entities;
-using Sabrina.Entities.Persistent;
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Sabrina.Commands
 {
@@ -25,9 +21,9 @@ namespace Sabrina.Commands
             uriBuilder.Query = parameters.ToString();
 
             var json = await new HttpClient().GetStringAsync(uriBuilder.ToString());
-            
+
             var urbanResponse = Urban.FromJson(json);
-            
+
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder();
 
             if (urbanResponse.List.Count == 0)

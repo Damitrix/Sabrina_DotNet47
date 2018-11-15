@@ -1,32 +1,54 @@
-﻿using System;
+﻿using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using Sabrina.Entities;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
-using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-
-using Sabrina.Bots;
-using Sabrina.Entities;
-using Sabrina.Entities.Persistent;
-
-using DSharpPlus.Interactivity;
 
 namespace Sabrina.Commands
 {
     internal class Moderator
     {
         private const string ConfirmRegex = "\\b[Yy][Ee]?[Ss]?\\b|\\b[Nn][Oo]?\\b";
-        private const string YesRegex = "[Yy][Ee]?[Ss]?";
         private const string NoRegex = "[Nn][Oo]?";
+        private const string YesRegex = "[Yy][Ee]?[Ss]?";
+
+        [Command("crash"), Description("Makes the bot crash")]
+        [RequirePermissions(DSharpPlus.Permissions.ManageMessages)]
+        public async Task CrashTask(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivityModule();
+            await ctx.RespondAsync("Are you sure?");
+            var m = await interactivity.WaitForMessageAsync(
+                x => x.Channel.Id == ctx.Channel.Id
+                     && x.Author.Id == ctx.Member.Id
+                     && Regex.IsMatch(x.Content, ConfirmRegex), TimeSpan.FromSeconds(60));
+
+            string[] possibleQuestions = new[]
+            {
+                "Are you really sure?", "Are you absolutely sure?", "Are you really really sure?",
+                "Are you reeeeaaaallly sure?", "Are you certain?", "Really?", "Last Chance"
+            };
+
+            while (m != null && Regex.IsMatch(m.Message.Content, YesRegex))
+            {
+                await ctx.RespondAsync(possibleQuestions[Helpers.RandomGenerator.RandomInt(0, possibleQuestions.Length)]);
+                m = await interactivity.WaitForMessageAsync(
+                    x => x.Channel.Id == ctx.Channel.Id
+                         && x.Author.Id == ctx.Member.Id
+                         && Regex.IsMatch(x.Content, ConfirmRegex), TimeSpan.FromSeconds(60));
+            }
+
+            await ctx.RespondAsync("*wipes sweat off*");
+        }
 
         [Command("movemsg"), Description("Moves a set amount of Messages from one Channel to another."), RequireRolesAttribute("minion", "techno kitty")]
         [Aliases(new[] { "shitpost" })]
@@ -97,35 +119,6 @@ namespace Sabrina.Commands
         public async Task PurgeMessages(CommandContext ctx, [Description("Amount of Messages to move")] int msgAmount)
         {
             await ctx.Channel.DeleteMessagesAsync(await ctx.Channel.GetMessagesAsync(msgAmount));
-        }
-
-        [Command("crash"), Description("Makes the bot crash")]
-        [RequirePermissions(DSharpPlus.Permissions.ManageMessages)]
-        public async Task CrashTask(CommandContext ctx)
-        {
-            var interactivity = ctx.Client.GetInteractivityModule();
-            await ctx.RespondAsync("Are you sure?");
-            var m = await interactivity.WaitForMessageAsync(
-                x => x.Channel.Id == ctx.Channel.Id
-                     && x.Author.Id == ctx.Member.Id
-                     && Regex.IsMatch(x.Content, ConfirmRegex), TimeSpan.FromSeconds(60));
-
-            string[] possibleQuestions = new[]
-            {
-                "Are you really sure?", "Are you absolutely sure?", "Are you really really sure?",
-                "Are you reeeeaaaallly sure?", "Are you certain?", "Really?", "Last Chance"
-            };
-
-            while (m != null && Regex.IsMatch(m.Message.Content, YesRegex))
-            {
-                await ctx.RespondAsync(possibleQuestions[Helpers.RandomGenerator.RandomInt(0, possibleQuestions.Length)]);
-                m = await interactivity.WaitForMessageAsync(
-                    x => x.Channel.Id == ctx.Channel.Id
-                         && x.Author.Id == ctx.Member.Id
-                         && Regex.IsMatch(x.Content, ConfirmRegex), TimeSpan.FromSeconds(60));
-            }
-
-            await ctx.RespondAsync("*wipes sweat off*");
         }
     }
 }

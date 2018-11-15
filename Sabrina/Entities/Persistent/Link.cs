@@ -1,18 +1,41 @@
-﻿using System.Collections.Generic;
+﻿using Configuration;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
-using Configuration;
 
 namespace Sabrina.Entities.Persistent
 {
     public class Link
     {
         public string CreatorName;
-        public string Url;
-        public ContentType Type;
         public string FileName;
+        public ContentType Type;
+        public string Url;
+
+        public enum ContentType
+        {
+            Video,
+            Picture
+        }
+
+        public static async Task<List<Link>> LoadAll()
+        {
+            var allLinks = new List<Link>();
+            foreach (string file in Directory.GetFiles(Config.BotFileFolders.WheelLinks))
+            {
+                allLinks.Add(await Load(file));
+            }
+
+            return allLinks;
+        }
+
+        public void Delete()
+        {
+            string fileLocation = $"{Config.BotFileFolders.WheelLinks}/{this.FileName}.xml";
+            File.Delete(fileLocation);
+        }
 
         public void Save()
         {
@@ -35,28 +58,6 @@ namespace Sabrina.Entities.Persistent
             }
         }
 
-        public void Delete()
-        {
-            string fileLocation = $"{Config.BotFileFolders.WheelLinks}/{this.FileName}.xml";
-            File.Delete(fileLocation);
-        }
-
-        public static async Task<List<Link>> LoadAll()
-        {
-            var allLinks = new List<Link>();
-            foreach (string file in Directory.GetFiles(Config.BotFileFolders.WheelLinks))
-            {
-                allLinks.Add(await Load(file));
-            }
-
-            return allLinks;
-        }
-
-        private static async Task<Link> Load(string fileLocation)
-        {
-            return await Task.Run(() => DeserializeLink(fileLocation));
-        }
-
         private static Link DeserializeLink(string fileLocation)
         {
             using (var reader = File.OpenRead(fileLocation))
@@ -71,10 +72,9 @@ namespace Sabrina.Entities.Persistent
             }
         }
 
-        public enum ContentType
+        private static async Task<Link> Load(string fileLocation)
         {
-            Video,
-            Picture
+            return await Task.Run(() => DeserializeLink(fileLocation));
         }
     }
 }

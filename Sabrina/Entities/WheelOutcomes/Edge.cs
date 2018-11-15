@@ -9,17 +9,10 @@
 
 namespace Sabrina.Entities.WheelOutcomes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
     using DSharpPlus.Entities;
-
-    using Sabrina.Entities.Persistent;
-
     using Models;
-
-
+    using Sabrina.Entities.Persistent;
+    using System;
 
     /// <summary>
     /// The edge Outcome.
@@ -119,9 +112,9 @@ namespace Sabrina.Entities.WheelOutcomes
         }
 
         /// <summary>
-        /// Gets or sets the outcome.
+        /// Gets or sets the chance of this being used.
         /// </summary>
-        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
+        public override int Chance { get; protected set; } = 20;
 
         /// <summary>
         /// Gets or sets the denial time.
@@ -129,9 +122,14 @@ namespace Sabrina.Entities.WheelOutcomes
         public override TimeSpan DenialTime { get; protected set; }
 
         /// <summary>
-        /// Gets or sets the wheel locked time.
+        /// Gets or sets the embed to display to the user.
         /// </summary>
-        public override TimeSpan WheelLockedTime { get; protected set; }
+        public override DiscordEmbed Embed { get; protected set; }
+
+        /// <summary>
+        /// Gets or sets the outcome.
+        /// </summary>
+        public override SlaveReportsExtension.Outcome Outcome { get; protected set; }
 
         /// <summary>
         /// Gets or sets the text to display to the user.
@@ -139,13 +137,8 @@ namespace Sabrina.Entities.WheelOutcomes
         public override string Text { get; protected set; }
 
         /// <summary>
-        /// Gets or sets the embed to display to the user.
+        /// Gets or sets the wheel locked time.
         /// </summary>
-        public override DiscordEmbed Embed { get; protected set; }
-
-        /// <summary>
-        /// Gets or sets the chance of this being used.
-        /// </summary>
-        public override int Chance { get; protected set; } = 20;
+        public override TimeSpan WheelLockedTime { get; protected set; }
     }
 }

@@ -7,6 +7,7 @@ namespace Sabrina.Models
     {
         public Users()
         {
+            DungeonSession = new HashSet<DungeonSession>();
             Messages = new HashSet<Messages>();
             Slavereports = new HashSet<Slavereports>();
         }
@@ -27,6 +28,7 @@ namespace Sabrina.Models
 
         public KinkHashes KinkHashes { get; set; }
         public UserSettings UserSettings { get; set; }
+        public ICollection<DungeonSession> DungeonSession { get; set; }
         public ICollection<Messages> Messages { get; set; }
         public ICollection<Slavereports> Slavereports { get; set; }
     }

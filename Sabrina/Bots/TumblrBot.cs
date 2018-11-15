@@ -28,10 +28,10 @@ namespace Sabrina.Bots
     /// </summary>
     internal class TumblrBot
     {
-        private DiscordClient _client;
+        private readonly DiscordClient _client;
         private DiscordContext _context;
-        private DiscordContext _updateContext;
         private Timer _postTimer;
+        private DiscordContext _updateContext;
         private Timer _updateTimer;
 
         public TumblrBot(DiscordClient client, DiscordContext context)
@@ -64,7 +64,7 @@ namespace Sabrina.Bots
             while (post == null)
             {
                 var minDateTime = DateTime.Now - TimeSpan.FromDays(cDays);
-                var validPosts = context.TumblrPosts.Where(tPost => tPost.LastPosted == null || tPost.LastPosted < minDateTime);
+                var validPosts = context.TumblrPosts.Where(tPost => (tPost.LastPosted == null || tPost.LastPosted < minDateTime) && tPost.IsLoli < 1);
                 var count = validPosts.Count();
 
                 if (count == 0)
@@ -104,6 +104,23 @@ namespace Sabrina.Bots
 
         public async Task CheckLoli(MessageReactionAddEventArgs e)
         {
+            if(e.Message.Embeds.Count != 1)
+            {
+                return;
+            }
+
+            bool isParceville = Int32.TryParse(e.Message.Embeds[0].Footer.Text, out int id);
+
+            if (!isParceville)
+            {
+                return;
+            }
+
+            DiscordContext context = new DiscordContext();
+
+            var post = await context.TumblrPosts.FindAsync(id);
+            post.IsLoli = 1;
+            await context.SaveChangesAsync();
         }
 
         /// <summary>
@@ -134,21 +151,18 @@ namespace Sabrina.Bots
         }
 
         /// <summary>
-        ///     Gets a specific Tumblr post
+        /// Get's a specific Tumblr Post
         /// </summary>
-        /// <param name="offset">
-        ///     The offset of the post
-        /// </param>
+        /// <param name="id">The ID of the Tumblr Post</param>
         /// <returns>
         ///     The <see cref="TumblrPost" />.
         /// </returns>
-        private static TumblrPost GetTumblrPostsByOffset(int offset)
+        private static TumblrPost GetTumblrPostById(long id)
         {
             string json = string.Empty;
-            var url = @"http://api.tumblr.com/v2/blog/deliciousanimefeet.tumblr.com/posts/photo";
-            url += "?api_key=uUXKMGxY2yGFCqey98rT9T0jU4ZBke2EgiqPPRhv2eCNIYeuki";
-            url += "&limit=20";
-            url += $"&offset={offset}";
+            var url = @"http://api.tumblr.com/v2/blog/deliciousanimefeet.tumblr.com/posts";
+            url += $"?id={id}";
+            url += "&api_key=uUXKMGxY2yGFCqey98rT9T0jU4ZBke2EgiqPPRhv2eCNIYeuki";
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Headers.Add("api_key", "uUXKMGxY2yGFCqey98rT9T0jU4ZBke2EgiqPPRhv2eCNIYeuki");
@@ -165,18 +179,21 @@ namespace Sabrina.Bots
         }
 
         /// <summary>
-        /// Get's a specific Tumblr Post
+        ///     Gets a specific Tumblr post
         /// </summary>
-        /// <param name="id">The ID of the Tumblr Post</param>
+        /// <param name="offset">
+        ///     The offset of the post
+        /// </param>
         /// <returns>
         ///     The <see cref="TumblrPost" />.
         /// </returns>
-        private static TumblrPost GetTumblrPostById(long id)
+        private static TumblrPost GetTumblrPostsByOffset(int offset)
         {
             string json = string.Empty;
-            var url = @"http://api.tumblr.com/v2/blog/deliciousanimefeet.tumblr.com/posts";
-            url += $"?id={id}";
-            url += "&api_key=uUXKMGxY2yGFCqey98rT9T0jU4ZBke2EgiqPPRhv2eCNIYeuki";
+            var url = @"http://api.tumblr.com/v2/blog/deliciousanimefeet.tumblr.com/posts/photo";
+            url += "?api_key=uUXKMGxY2yGFCqey98rT9T0jU4ZBke2EgiqPPRhv2eCNIYeuki";
+            url += "&limit=20";
+            url += $"&offset={offset}";
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Headers.Add("api_key", "uUXKMGxY2yGFCqey98rT9T0jU4ZBke2EgiqPPRhv2eCNIYeuki");
@@ -223,9 +240,9 @@ namespace Sabrina.Bots
             {
                 lastUpdate = _updateContext.SabrinaSettings.First().LastTumblrUpdate;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
             }
 
             var minDate = DateTime.Now - TimeSpan.FromDays(3);

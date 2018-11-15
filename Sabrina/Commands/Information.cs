@@ -7,21 +7,17 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-
-
 namespace Sabrina.Commands
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     using DSharpPlus.CommandsNext;
     using DSharpPlus.CommandsNext.Attributes;
     using DSharpPlus.Entities;
-
     using Sabrina.Entities;
     using Sabrina.Entities.Persistent;
     using Sabrina.Models;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The information Command Group.

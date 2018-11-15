@@ -22,7 +22,6 @@ namespace Sabrina.Commands
     using System.Linq;
     using System.Threading.Tasks;
 
-
     /// <summary>
     /// The orgasm wheel Command Group.
     /// </summary>
@@ -30,52 +29,14 @@ namespace Sabrina.Commands
     {
         public DiscordContext _context;
 
-        public OrgasmWheel(DiscordContext context)
-        {
-            _context = new DiscordContext();
-        }
-
         /// <summary>
         /// The wheel outcomes.
         /// </summary>
         private List<WheelOutcome> wheelOutcomes;
 
-        /// <summary>
-        /// The spin wheel Command.
-        /// </summary>
-        /// <param name="ctx">
-        /// The Command Context.
-        /// </param>
-        /// <returns>
-        /// A <see cref="Task"/>.
-        /// </returns>
-        [Command("oldorgasmwheel")]
-        [Description("Spins the old wheel. Just in case the new one is broken.")]
-        [Aliases("orgasmwheel1", "orgasmwheel2")]
-        public async Task SpinWheelAsync(CommandContext ctx)
+        public OrgasmWheel(DiscordContext context)
         {
-            if (ctx.Channel.Name != Configuration.Config.Channels.Wheel)
-            {
-                return;
-            }
-
-            int outcome = Helpers.RandomGenerator.RandomInt(0, 100);
-
-            var line = "Sorry, no Entries yet.";
-            if (outcome < 92)
-            {
-                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Denial.txt");
-            }
-            else if (outcome < 96)
-            {
-                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Ruin.txt");
-            }
-            else
-            {
-                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Orgasm.txt");
-            }
-
-            await ctx.RespondAsync(line);
+            _context = new DiscordContext();
         }
 
         /// <summary>
@@ -125,7 +86,7 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
-        /// The show links Command.
+        /// The denial time Command.
         /// </summary>
         /// <param name="ctx">
         /// The Command Context.
@@ -133,30 +94,31 @@ namespace Sabrina.Commands
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        [Command("showlinks")]
-        [Description("Shows all Links")]
-        [RequireOwner]
-        public async Task ShowLinksAsync(CommandContext ctx)
+        [Command("denialtime")]
+        [Description("Shows how much longer you should not come")]
+        [Aliases("denieduntil")]
+        public async Task DenialTimeAsync(CommandContext ctx)
         {
-            List<Link> links = await Link.LoadAll();
+            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
 
-            var text = "Here are all Links:\n```";
+            var denialString = "You have no denial time left.";
+            var wheelLockedString = "You can spin the wheel at any time.";
 
-            foreach (var link in links)
+            if (user.DenialTime != null && user.DenialTime > DateTime.Now)
             {
-                if ((text + link.Url).Length > 1999)
-                {
-                    text += "```";
-                    await ctx.RespondAsync(text);
-                    text = "Here are more Links:\n```";
-                }
-
-                text += link.Url + "\n";
+                denialString =
+                    $"You still have {TimeResolver.TimeToString(user.DenialTime.Value - DateTime.Now)} of denial left.";
             }
 
-            text += "```";
+            if (user.LockTime != null && user.LockTime > DateTime.Now)
+            {
+                wheelLockedString =
+                    $"You can spin the wheel again in {TimeResolver.TimeToString(user.LockTime.Value - DateTime.Now)}.";
+            }
 
-            await ctx.RespondAsync(text);
+            await ctx.RespondAsync($"Hey {(await ctx.Client.GetUserAsync(Convert.ToUInt64(user.UserId))).Mention},\n" +
+                                   $"{denialString}\n" +
+                                   $"{wheelLockedString}");
         }
 
         /// <summary>
@@ -200,6 +162,73 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
+        /// The remove profile async.
+        /// </summary>
+        /// <param name="ctx">
+        /// The Command Context.
+        /// </param>
+        /// <param name="dcUser">
+        /// The Discord user.
+        /// </param>
+        /// <returns>
+        /// The <see cref="Task"/>.
+        /// </returns>
+        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1305:FieldNamesMustNotUseHungarianNotation", Justification = "Reviewed. Suppression is OK here.")]
+        [Command("resetuser")]
+        [Description("Reset a Users saved Data")]
+        [Aliases("ru")]
+        [RequireRolesAttribute("mistress", "minion", "techno kitty")]
+        public async Task RemoveProfileAsync(CommandContext ctx, [Description("Mention the user here")] DiscordUser dcUser)
+        {
+            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+
+            user.DenialTime = null;
+            user.BanTime = null;
+            user.LockTime = null;
+            user.SpecialTime = null;
+            user.RuinTime = null;
+
+            await _context.SaveChangesAsync();
+
+            await ctx.RespondAsync($"I've reset the Profile of {dcUser.Mention}.");
+        }
+
+        /// <summary>
+        /// The show links Command.
+        /// </summary>
+        /// <param name="ctx">
+        /// The Command Context.
+        /// </param>
+        /// <returns>
+        /// The <see cref="Task"/>.
+        /// </returns>
+        [Command("showlinks")]
+        [Description("Shows all Links")]
+        [RequireOwner]
+        public async Task ShowLinksAsync(CommandContext ctx)
+        {
+            List<Link> links = await Link.LoadAll();
+
+            var text = "Here are all Links:\n```";
+
+            foreach (var link in links)
+            {
+                if ((text + link.Url).Length > 1999)
+                {
+                    text += "```";
+                    await ctx.RespondAsync(text);
+                    text = "Here are more Links:\n```";
+                }
+
+                text += link.Url + "\n";
+            }
+
+            text += "```";
+
+            await ctx.RespondAsync(text);
+        }
+
+        /// <summary>
         /// The orgasm wheel Command.
         /// </summary>
         /// <param name="ctx">
@@ -213,7 +242,12 @@ namespace Sabrina.Commands
         public async Task SpinNewWheelAsync(CommandContext ctx)
         {
             var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
-            var settings = _context.UserSettings.Find(Convert.ToInt64(ctx.Message.Author.Id));
+            var settings = await _context.UserSettings.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+
+            if (user == null)
+            {
+                user = new Users();
+            }
 
             if (settings == null)
             {
@@ -296,7 +330,6 @@ namespace Sabrina.Commands
                         $"Well, you're still denied for {TimeResolver.TimeToString(timeUntilFree.Value)}.\n"
                         + $"You still want to do something? Then here you go."
                         + $"\nAnd as a bonus, if you get more denial time, it will get added on top of your existing time! {DiscordEmoji.FromName(ctx.Client, Configuration.Config.Emojis.Blush)}");
-
                 }
                 await Task.Delay(1500);
                 outcome = SlaveReportsExtension.Outcome.denial | SlaveReportsExtension.Outcome.task;
@@ -343,7 +376,7 @@ namespace Sabrina.Commands
             }
 
             if (user.LockTime == null)
-            { 
+            {
                 user.LockTime = DateTime.Now;
             }
 
@@ -372,73 +405,41 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
-        /// The denial time Command.
+        /// The spin wheel Command.
         /// </summary>
         /// <param name="ctx">
         /// The Command Context.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        /// A <see cref="Task"/>.
         /// </returns>
-        [Command("denialtime")]
-        [Description("Shows how much longer you should not come")]
-        [Aliases("denieduntil")]
-        public async Task DenialTimeAsync(CommandContext ctx)
+        [Command("oldorgasmwheel")]
+        [Description("Spins the old wheel. Just in case the new one is broken.")]
+        [Aliases("orgasmwheel1", "orgasmwheel2")]
+        public async Task SpinWheelAsync(CommandContext ctx)
         {
-            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
-
-            var denialString = "You have no denial time left.";
-            var wheelLockedString = "You can spin the wheel at any time.";
-
-            if (user.DenialTime != null && user.DenialTime > DateTime.Now)
+            if (ctx.Channel.Name != Configuration.Config.Channels.Wheel)
             {
-                denialString =
-                    $"You still have {TimeResolver.TimeToString(user.DenialTime.Value - DateTime.Now)} of denial left.";
-
+                return;
             }
 
-            if (user.LockTime != null && user.LockTime > DateTime.Now)
-            {
-                wheelLockedString =
-                    $"You can spin the wheel again in {TimeResolver.TimeToString(user.LockTime.Value - DateTime.Now)}.";
+            int outcome = Helpers.RandomGenerator.RandomInt(0, 100);
 
+            var line = "Sorry, no Entries yet.";
+            if (outcome < 92)
+            {
+                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Denial.txt");
+            }
+            else if (outcome < 96)
+            {
+                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Ruin.txt");
+            }
+            else
+            {
+                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Orgasm.txt");
             }
 
-            await ctx.RespondAsync($"Hey {(await ctx.Client.GetUserAsync(Convert.ToUInt64(user.UserId))).Mention},\n" +
-                                   $"{denialString}\n" +
-                                   $"{wheelLockedString}");
-        }
-
-        /// <summary>
-        /// The remove profile async.
-        /// </summary>
-        /// <param name="ctx">
-        /// The Command Context.
-        /// </param>
-        /// <param name="dcUser">
-        /// The Discord user.
-        /// </param>
-        /// <returns>
-        /// The <see cref="Task"/>.
-        /// </returns>
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1305:FieldNamesMustNotUseHungarianNotation", Justification = "Reviewed. Suppression is OK here.")]
-        [Command("resetuser")]
-        [Description("Reset a Users saved Data")]
-        [Aliases("ru")]
-        [RequireRolesAttribute("mistress", "minion", "techno kitty")]
-        public async Task RemoveProfileAsync(CommandContext ctx, [Description("Mention the user here")] DiscordUser dcUser)
-        {
-            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
-
-            user.DenialTime = null;
-            user.BanTime = null;
-            user.LockTime = null;
-            user.SpecialTime = null;
-            user.RuinTime = null;
-
-            await _context.SaveChangesAsync();
-
-            await ctx.RespondAsync($"I've reset the Profile of {dcUser.Mention}.");
+            await ctx.RespondAsync(line);
         }
 
         /// <summary>

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 
 namespace Sabrina.Models
 {
-    public partial class DungeonVariablesConnection
+    public partial class DungeonVariable
     {
         public int Id { get; set; }
         public int TextId { get; set; }
-        public int VariableId { get; set; }
+        public int Position { get; set; }
+        public int Type { get; set; }
 
-        public DungeonText Variable { get; set; }
+        public DungeonText Text { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Sabrina.Entities;
 
 namespace Sabrina.Models
 {
@@ -15,9 +16,10 @@ namespace Sabrina.Models
         {
         }
 
+        public virtual DbSet<DungeonMob> DungeonMob { get; set; }
+        public virtual DbSet<DungeonSession> DungeonSession { get; set; }
         public virtual DbSet<DungeonText> DungeonText { get; set; }
-        public virtual DbSet<DungeonVariablesConnection> DungeonVariablesConnection { get; set; }
-        public virtual DbSet<DungeonVariablesVariables> DungeonVariablesVariables { get; set; }
+        public virtual DbSet<DungeonVariable> DungeonVariable { get; set; }
         public virtual DbSet<KinkHashes> KinkHashes { get; set; }
         public virtual DbSet<Messages> Messages { get; set; }
         public virtual DbSet<PornhubVideos> PornhubVideos { get; set; }
@@ -33,60 +35,70 @@ namespace Sabrina.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=joidb.ddns.net;Database=Discord;user id=DiscordUser;password=zkCrMGv3uGK8P7Tr");
+                optionsBuilder.UseSqlServer($"Server=joidb.ddns.net;Database=Discord;user id=DiscordUser;password={DBPassword.Password}");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DungeonText>(entity =>
+            modelBuilder.Entity<DungeonMob>(entity =>
             {
-                entity.ToTable("Dungeon.Text");
-
-                entity.Property(e => e.Id).HasColumnName("ID");
-
-                entity.Property(e => e.RoomType)
-                    .IsRequired()
-                    .HasMaxLength(20);
-
-                entity.Property(e => e.Text)
-                    .IsRequired()
-                    .HasColumnType("ntext");
-
-                entity.Property(e => e.TextType)
-                    .IsRequired()
-                    .HasMaxLength(20);
-            });
-
-            modelBuilder.Entity<DungeonVariablesConnection>(entity =>
-            {
-                entity.ToTable("Dungeon.Variables.Connection");
-
-                entity.Property(e => e.Id)
-                    .HasColumnName("ID")
-                    .ValueGeneratedNever();
-
-                entity.Property(e => e.TextId).HasColumnName("TextID");
-
-                entity.Property(e => e.VariableId).HasColumnName("VariableID");
-
-                entity.HasOne(d => d.Variable)
-                    .WithMany(p => p.DungeonVariablesConnection)
-                    .HasForeignKey(d => d.VariableId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Dungeon.Variables.Connection_Dungeon.Text");
-            });
-
-            modelBuilder.Entity<DungeonVariablesVariables>(entity =>
-            {
-                entity.ToTable("Dungeon.Variables.Variables");
+                entity.ToTable("Dungeon.Mob");
 
                 entity.Property(e => e.Id).HasColumnName("ID");
 
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<DungeonSession>(entity =>
+            {
+                entity.HasKey(e => e.SessionId);
+
+                entity.ToTable("Dungeon.Session");
+
+                entity.Property(e => e.SessionId)
+                    .HasColumnName("SessionID")
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.DungeonData).IsRequired();
+
+                entity.Property(e => e.RoomGuid).IsRequired();
+
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.DungeonSession)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Dungeon.Session_Users");
+            });
+
+            modelBuilder.Entity<DungeonText>(entity =>
+            {
+                entity.ToTable("Dungeon.Text");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.Text)
+                    .IsRequired()
+                    .HasColumnType("ntext");
+            });
+
+            modelBuilder.Entity<DungeonVariable>(entity =>
+            {
+                entity.ToTable("Dungeon.Variable");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.TextId).HasColumnName("TextID");
+
+                entity.HasOne(d => d.Text)
+                    .WithMany(p => p.DungeonVariable)
+                    .HasForeignKey(d => d.TextId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Dungeon.Variables_Dungeon.Variables");
             });
 
             modelBuilder.Entity<KinkHashes>(entity =>

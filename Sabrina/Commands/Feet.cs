@@ -9,14 +9,12 @@
 
 namespace Sabrina.Commands
 {
-    using System.Threading.Tasks;
-
     using DSharpPlus.CommandsNext;
     using DSharpPlus.CommandsNext.Attributes;
-
     using Sabrina.Bots;
     using Sabrina.Entities;
     using Sabrina.Models;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The feet Command Group.

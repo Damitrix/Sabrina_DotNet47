@@ -7,14 +7,14 @@ namespace Sabrina.Models
     {
         public DungeonText()
         {
-            DungeonVariablesConnection = new HashSet<DungeonVariablesConnection>();
+            DungeonVariable = new HashSet<DungeonVariable>();
         }
 
         public int Id { get; set; }
         public string Text { get; set; }
-        public string RoomType { get; set; }
-        public string TextType { get; set; }
+        public int RoomType { get; set; }
+        public int TextType { get; set; }
 
-        public ICollection<DungeonVariablesConnection> DungeonVariablesConnection { get; set; }
+        public ICollection<DungeonVariable> DungeonVariable { get; set; }
     }
 }

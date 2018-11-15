@@ -9,18 +9,15 @@
 
 namespace Sabrina.Entities.Persistent
 {
-    using System;
-
     using DSharpPlus.Entities;
     using Sabrina.Models;
+    using System;
 
     /// <summary>
     /// The wheel outcome.
     /// </summary>
     internal abstract class WheelOutcome
     {
-        protected DiscordContext _context;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="WheelOutcome"/> class.
         /// </summary>
@@ -37,9 +34,9 @@ namespace Sabrina.Entities.Persistent
         }
 
         /// <summary>
-        /// Gets or sets the outcome.
+        /// Gets or sets the chance.
         /// </summary>
-        public abstract SlaveReportsExtension.Outcome Outcome { get; protected set; }
+        public abstract int Chance { get; protected set; }
 
         /// <summary>
         /// Gets or sets the denial time.
@@ -47,9 +44,14 @@ namespace Sabrina.Entities.Persistent
         public abstract TimeSpan DenialTime { get; protected set; }
 
         /// <summary>
-        /// Gets or sets the wheel locked time.
+        /// Gets or sets the embed.
         /// </summary>
-        public abstract TimeSpan WheelLockedTime { get; protected set; }
+        public abstract DiscordEmbed Embed { get; protected set; }
+
+        /// <summary>
+        /// Gets or sets the outcome.
+        /// </summary>
+        public abstract SlaveReportsExtension.Outcome Outcome { get; protected set; }
 
         /// <summary>
         /// Gets or sets the text.
@@ -57,13 +59,8 @@ namespace Sabrina.Entities.Persistent
         public abstract string Text { get; protected set; }
 
         /// <summary>
-        /// Gets or sets the embed.
+        /// Gets or sets the wheel locked time.
         /// </summary>
-        public abstract DiscordEmbed Embed { get; protected set; }
-
-        /// <summary>
-        /// Gets or sets the chance.
-        /// </summary>
-        public abstract int Chance { get; protected set; }
+        public abstract TimeSpan WheelLockedTime { get; protected set; }
     }
 }

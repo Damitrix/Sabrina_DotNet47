@@ -9,11 +9,10 @@
 
 namespace Sabrina.Entities.WheelOutcomes
 {
-    using System;
     using DSharpPlus.Entities;
-    using Sabrina.Entities.Persistent;
     using Models;
-
+    using Sabrina.Entities.Persistent;
+    using System;
 
     /// <summary>
     /// The no orgasm Outcome.

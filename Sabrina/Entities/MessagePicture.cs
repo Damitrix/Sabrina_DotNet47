@@ -9,7 +9,6 @@ namespace Sabrina.Entities
 {
     internal class MessagePicture
     {
-        public int Height { get; private set; } = 50;
         private DiscordMessage msg;
 
         public MessagePicture(DiscordMessage msg, Graphics graphics, int imgWidth)
@@ -28,6 +27,8 @@ namespace Sabrina.Entities
                 }
             }
         }
+
+        public int Height { get; private set; } = 50;
 
         public void AddToImg(Graphics graphics, float yAxis, int imgWidth)
         {

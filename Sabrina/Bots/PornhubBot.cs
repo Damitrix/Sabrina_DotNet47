@@ -2,19 +2,15 @@
 
 namespace Sabrina.Pornhub
 {
+    using DSharpPlus;
+    using DSharpPlus.Entities;
+    using HtmlAgilityPack;
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
     using System.Threading.Tasks;
-
-    using DSharpPlus;
-    using DSharpPlus.Entities;
-
-    using HtmlAgilityPack;
-
-    using Sabrina.Entities;
 
     public class PornhubBot
     {
@@ -81,13 +77,13 @@ namespace Sabrina.Pornhub
                                 }
 
                                 var video = new Video
-                                                {
-                                                    Url = url,
-                                                    Creator = channel,
-                                                    CreationDate = DateTime.Now,
-                                                    ImageUrl = imageNode.GetAttributeValue("content", string.Empty),
-                                                    Title = titleNode.GetAttributeValue("content", string.Empty)
-                                                };
+                                {
+                                    Url = url,
+                                    Creator = channel,
+                                    CreationDate = DateTime.Now,
+                                    ImageUrl = imageNode.GetAttributeValue("content", string.Empty),
+                                    Title = titleNode.GetAttributeValue("content", string.Empty)
+                                };
 
                                 var containsVideo = false;
 
@@ -104,11 +100,11 @@ namespace Sabrina.Pornhub
                                     await video.Save();
 
                                     var builder = new DiscordEmbedBuilder
-                                                      {
-                                                          Title = $"{video.Creator} has Uploaded a new Video!",
-                                                          Timestamp = DateTime.Now,
-                                                          Url = video.Url
-                                                      };
+                                    {
+                                        Title = $"{video.Creator} has Uploaded a new Video!",
+                                        Timestamp = DateTime.Now,
+                                        Url = video.Url
+                                    };
                                     builder.AddField("Title", video.Title);
                                     builder.ThumbnailUrl = video.ImageUrl;
                                     builder.AddField("CreationDate", video.CreationDate.ToLongDateString());
@@ -170,13 +166,13 @@ namespace Sabrina.Pornhub
                 while (await reader.ReadAsync())
                     videos.Add(
                         new Video
-                            {
-                                CreationDate = DateTime.Parse(reader["Date"].ToString()),
-                                Creator = reader["Creator"].ToString(),
-                                ImageUrl = reader["ImageUrl"].ToString(),
-                                Title = reader["Title"].ToString(),
-                                Url = reader["URL"].ToString()
-                            });
+                        {
+                            CreationDate = DateTime.Parse(reader["Date"].ToString()),
+                            Creator = reader["Creator"].ToString(),
+                            ImageUrl = reader["ImageUrl"].ToString(),
+                            Title = reader["Title"].ToString(),
+                            Url = reader["URL"].ToString()
+                        });
             }
 
             return videos.ToArray();
