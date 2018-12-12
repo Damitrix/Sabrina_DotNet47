@@ -7,6 +7,11 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
+using System.Linq;
+using DSharpPlus.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace Sabrina.Commands
 {
     using DSharpPlus.CommandsNext;
@@ -21,13 +26,6 @@ namespace Sabrina.Commands
     /// </summary>
     internal class Feet
     {
-        private DiscordContext _context;
-
-        public Feet(DiscordContext context)
-        {
-            _context = new DiscordContext();
-        }
-
         /// <summary>
         /// The boost feet pics Command.
         /// </summary>
@@ -37,14 +35,47 @@ namespace Sabrina.Commands
         /// <returns>
         /// A <see cref="Task"/>.
         /// </returns>
-        [Command("boost"), Description("Posts some more Feet. Can be used 2 times every 10 minutes"), Cooldown(2, 1, CooldownBucketType.Guild)]
+        [Command("boost"), Description("Posts some more Feet. Can be used 4 times a day")]
         public async Task BoostFeetPics(CommandContext ctx)
         {
+            var context = new DiscordContext();
+
+            var minTime = DateTime.Now - TimeSpan.FromHours(6);
+            var boosts = context.Boost.Where(b => b.Date > minTime && (b.Channel == null || b.Channel == Convert.ToInt64(ctx.Channel.Id)));
+
+            if (await boosts.CountAsync() > 4)
+            {
+                await ctx.RespondAsync($"You have to wait before boosting again. Next one is available in {(TimeSpan.FromHours(6) - (DateTime.Now - boosts.Last().Date)).TotalMinutes} minutes.");
+                return;
+            }
+
+            var sabrinaSettings = await context.SabrinaSettings.FindAsync(Convert.ToInt64(ctx.Guild.Id));
+            
+            if (sabrinaSettings.FeetChannel == null)
+            {
+                sabrinaSettings.FeetChannel = Convert.ToInt64(ctx.Channel.Id);
+            }
+
+            var channel = await ctx.Client.GetChannelAsync(Convert.ToUInt64(sabrinaSettings.FeetChannel));
+            
+            if (sabrinaSettings.FeetChannel.Value != Convert.ToInt64(ctx.Channel.Id))
+            {
+                await ctx.RespondAsync($"You cannot issue this command from this Channel. Please use {channel.Mention}");
+                return;
+            }
+
             var picsToPost = Helpers.RandomGenerator.RandomInt(2, 5);
             for (int i = 0; i < picsToPost; i++)
             {
-                await TumblrBot.PostRandom(ctx.Client, _context);
+                await TumblrBot.PostRandom(ctx.Client, context, new DiscordChannel[] { channel });
             }
+
+            context.Boost.Add(new Boost()
+            {
+                Amount = picsToPost,
+                Date = DateTime.Now
+            });
+            await context.SaveChangesAsync();
         }
     }
 }

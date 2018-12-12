@@ -4,7 +4,8 @@ namespace Configuration
 {
     public static class Config
     {
-        private static readonly string CDir = $"{Directory.GetCurrentDirectory()}/";
+        private static string _cDir;
+        private static string CDir => _cDir ?? (_cDir = Directory.GetCurrentDirectory());
 
         public static string DataBaseConnectionString
         {
@@ -22,17 +23,26 @@ namespace Configuration
 
         public static class BotFileFolders
         {
-            public static readonly string SlaveReports = $"{MainFolder}/SlaveReports";
-            public static readonly string UserData = $"{MainFolder}/UserData";
-            public static readonly string WheelLinks = $"{WheelResponses}/Links";
-            public static readonly string WheelResponses = $"{MainFolder}/WheelResponses";
-            internal static readonly string MainFolder = $"{CDir}/BotFiles/";
+            private static string _slaveReports;
+            private static string _userData;
+            private static string _wheelLinks;
+            private static string _wheelResponses;
+            private static string _mainFolder;
+
+            public static string SlaveReports => _slaveReports ?? (_slaveReports = Path.Combine(MainFolder, "SlaveReports"));
+            public static string UserData => _userData ?? (_userData = Path.Combine(MainFolder, "UserData"));
+            public static string WheelLinks => _wheelLinks ?? (_wheelLinks = Path.Combine(MainFolder, "Links"));
+            public static string WheelResponses => _wheelResponses ?? (_wheelResponses = Path.Combine(MainFolder, "WheelResponses"));
+            public static string MainFolder => _mainFolder ?? (_mainFolder = Path.Combine(CDir, "BotFiles"));
         }
 
         public static class Channels
         {
             public const string Instruction = "slave-instruction";
+            public const ulong InstructionUlong = 426753357647183872;
             public const string Wheel = "wheel-of-misfortune";
+            public const ulong WheelUlong = 449840094736678912;
+            public const ulong TestChannelUlong = 450793619398459432;
         }
 
         public static class Emojis
@@ -41,6 +51,7 @@ namespace Configuration
             public static string[] Confirms = new[] { ":white_check_mark:", ":ballot_box_with_check:", ":heavy_check_mark:", ":thumbsup" };
             public static string[] Declines = new[] { ":negative_squared_cross_mark:", ":x:", ":deletdis:", ":underage:", ":no_entry_sign:" };
             public static string Heart = ":heart:";
+            public static string Underage = ":underage:";
         }
 
         public static class Pornhub
@@ -72,7 +83,6 @@ namespace Configuration
         {
             public const ulong Aki = 335437183127257089ul;
             public const ulong Salem = 249216025931939841ul;
-            public const ulong Weyui = 193029284376346624ul;
         }
     }
 }

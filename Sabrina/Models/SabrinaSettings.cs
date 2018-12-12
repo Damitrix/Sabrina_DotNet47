@@ -9,5 +9,8 @@ namespace Sabrina.Models
         public DateTime? LastTumblrPost { get; set; }
         public DateTime? LastIntroductionPost { get; set; }
         public DateTime? LastTumblrUpdate { get; set; }
+        public DateTime? LastWheelHelpPost { get; set; }
+        public long? WheelChannel { get; set; }
+        public long? FeetChannel { get; set; }
     }
 }

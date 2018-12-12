@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Sabrina.Dungeon.Rooms.Room;
-using static Sabrina.Models.DungeonTextExtension;
 
 namespace Sabrina.Dungeon
 {
@@ -130,12 +129,12 @@ namespace Sabrina.Dungeon
                         };
 
                         //If enough Rooms are left, converge with either 2 or 3 rooms
-                        if (this.Rooms.Where(r => r.LayerID == layerID - 1).Count() > prevRoomIndex + 1)
+                        if (this.Rooms.Count(r => r.LayerID == layerID - 1) > prevRoomIndex + 1)
                         {
                             adjacentRooms.Add(this.Rooms.Where(r => r.LayerID == layerID - 1).ElementAt(prevRoomIndex + 1));
                             skipRooms++;
 
-                            if (convergeNum == 2 && this.Rooms.Where(r => r.LayerID == layerID - 1).Count() > prevRoomIndex + 2)
+                            if (convergeNum == 2 && this.Rooms.Count(r => r.LayerID == layerID - 1) > prevRoomIndex + 2)
                             {
                                 adjacentRooms.Add(this.Rooms.Where(r => r.LayerID == layerID - 1).ElementAt(prevRoomIndex + 2));
                                 skipRooms++;
@@ -167,11 +166,11 @@ namespace Sabrina.Dungeon
 
                 if (Helpers.RandomGenerator.RandomInt(0, maxLootRoomChance) > lootRoomChance)
                 {
-                    generatedRoom = GenerateRoom(difficulty, RoomType.Loot);
+                    generatedRoom = GenerateRoom(DungeonTextExtension.RoomType.Loot);
                 }
                 else
                 {
-                    generatedRoom = GenerateRoom(difficulty, RoomType.LesserMob, RoomType.Boss);
+                    generatedRoom = GenerateRoom(DungeonTextExtension.RoomType.LesserMob, DungeonTextExtension.RoomType.Boss);
                 }
 
                 if (generatedRoom == null)
@@ -183,7 +182,7 @@ namespace Sabrina.Dungeon
 
             private Room GenerateStartRoom()
             {
-                return GenerateRoom(DungeonDifficulty.ChildsPlay, RoomType.Start);
+                return GenerateRoom(DungeonTextExtension.RoomType.Start);
             }
         }
 

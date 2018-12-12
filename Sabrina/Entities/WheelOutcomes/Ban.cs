@@ -31,7 +31,7 @@ namespace Sabrina.Entities.WheelOutcomes
         /// <param name="settings">
         /// The settings.
         /// </param>
-        public Ban(SlaveReportsExtension.Outcome outcome, Models.UserSettings settings, DiscordContext context) : base(outcome, settings, context)
+        public Ban(SlaveReportsExtension.Outcome outcome, UserSettings settings, DiscordContext context) : base(outcome, settings, context)
         {
             if (settings.WheelTaskPreference == null)
             {
@@ -92,7 +92,7 @@ namespace Sabrina.Entities.WheelOutcomes
             }
 
             this.Embed = builder.Build();
-            this.Outcome = SlaveReportsExtension.Outcome.task;
+            this.Outcome = SlaveReportsExtension.Outcome.Task;
         }
 
         public override int Chance { get; protected set; } = 10;

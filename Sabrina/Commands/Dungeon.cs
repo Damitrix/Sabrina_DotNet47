@@ -1,20 +1,23 @@
-﻿using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Attributes;
-using DSharpPlus.Entities;
-using DSharpPlus.Interactivity;
-using Sabrina.Entities;
-using Sabrina.Models;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using Newtonsoft.Json;
+using Sabrina.Dungeon;
+using Sabrina.Dungeon.Rooms;
+using Sabrina.Entities;
+using Sabrina.Models;
 
 namespace Sabrina.Commands
 {
     [Group("dungeon")]
     internal class Dungeon
     {
-        private DiscordContext _context = new DiscordContext();
+        private readonly DiscordContext _context = new DiscordContext();
 
         public Dungeon()
         {
@@ -24,41 +27,43 @@ namespace Sabrina.Commands
         [Command("continueadvanced")]
         public async Task ContinueLength(CommandContext ctx, string length)
         {
-            var session = _context.DungeonSession.FirstOrDefault(ds => ds.UserId == Convert.ToInt64(ctx.User.Id));
+            DungeonSession session =
+                _context.DungeonSession.FirstOrDefault(ds => ds.UserId == Convert.ToInt64(ctx.User.Id));
 
-            Sabrina.Dungeon.DungeonLogic.Dungeon dungeon = null;
-            Sabrina.Dungeon.Rooms.Room room = null;
+            DungeonLogic.Dungeon dungeon = null;
+            Room room = null;
 
-            Sabrina.Dungeon.DungeonLogic.Dungeon.DungeonDifficulty dungeonDifficulty = Sabrina.Dungeon.DungeonLogic.Dungeon.DungeonDifficulty.Medium;
-            var difficulty = (await _context.UserSettings.FindAsync(Convert.ToInt64(ctx.User.Id))).DungeonDifficulty;
+            DungeonLogic.Dungeon.DungeonDifficulty dungeonDifficulty = DungeonLogic.Dungeon.DungeonDifficulty.Medium;
+            int? difficulty = (await _context.UserSettings.FindAsync(Convert.ToInt64(ctx.User.Id))).DungeonDifficulty;
 
             if (difficulty != null)
             {
-                dungeonDifficulty = (Sabrina.Dungeon.DungeonLogic.Dungeon.DungeonDifficulty)difficulty.Value;
+                dungeonDifficulty = (DungeonLogic.Dungeon.DungeonDifficulty) difficulty.Value;
             }
 
             if (session != null)
             {
                 // Pre-Existing Session found
-                dungeon = (Sabrina.Dungeon.DungeonLogic.Dungeon)Newtonsoft.Json.JsonConvert.DeserializeObject(session.DungeonData);
+                dungeon = JsonConvert.DeserializeObject<DungeonLogic.Dungeon>(session.DungeonData);
                 room = dungeon.Rooms.First(r => r.RoomID == Guid.Parse(session.RoomGuid));
             }
             else
             {
-                var dungeonLength = (Sabrina.Dungeon.DungeonLogic.Dungeon.DungeonLength)Enum.Parse(typeof(Sabrina.Dungeon.DungeonLogic.Dungeon.DungeonLength), length);
+                DungeonLogic.Dungeon.DungeonLength dungeonLength =
+                    (DungeonLogic.Dungeon.DungeonLength) Enum.Parse(typeof(DungeonLogic.Dungeon.DungeonLength), length);
 
                 // Start new Session
-                dungeon = new Sabrina.Dungeon.DungeonLogic.Dungeon(1, dungeonLength, dungeonDifficulty);
+                dungeon = new DungeonLogic.Dungeon(1, dungeonLength, dungeonDifficulty);
                 room = dungeon.Rooms.First();
 
                 try
                 {
-                    var dungeonJson = Newtonsoft.Json.JsonConvert.SerializeObject(dungeon, new Newtonsoft.Json.JsonSerializerSettings()
+                    var dungeonJson = JsonConvert.SerializeObject(dungeon, new JsonSerializerSettings
                     {
-                        TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto
+                        TypeNameHandling = TypeNameHandling.Auto
                     });
 
-                    session = new DungeonSession()
+                    session = new DungeonSession
                     {
                         DungeonData = dungeonJson,
                         UserId = Convert.ToInt64(ctx.User.Id),
@@ -79,7 +84,7 @@ namespace Sabrina.Commands
             room.SetDifficulty(dungeonDifficulty);
 
             //Enter Room Message
-            DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+            DiscordEmbedBuilder builder = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.Grayple,
                 Description = room.GetText(DungeonTextExtension.TextType.RoomEnter)
@@ -93,7 +98,7 @@ namespace Sabrina.Commands
             if (room.Type == DungeonTextExtension.RoomType.LesserMob || room.Type == DungeonTextExtension.RoomType.Boss)
             {
                 //Greeting Message
-                builder = new DiscordEmbedBuilder()
+                builder = new DiscordEmbedBuilder
                 {
                     Color = DiscordColor.Chartreuse,
                     Description = room.GetText(DungeonTextExtension.TextType.Greeting)
@@ -106,7 +111,7 @@ namespace Sabrina.Commands
             }
 
             // Main Message (Task or Chest opening f.e.)
-            builder = new DiscordEmbedBuilder()
+            builder = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.Blue,
                 Description = room.GetText(DungeonTextExtension.TextType.Main)
@@ -119,7 +124,7 @@ namespace Sabrina.Commands
             if (room.Type == DungeonTextExtension.RoomType.Loot)
             {
                 // TODO: Save Loot
-                builder = new DiscordEmbedBuilder()
+                builder = new DiscordEmbedBuilder
                 {
                     Color = DiscordColor.Chartreuse,
                     Description = "The Items have been placed into your current Inventory."
@@ -130,21 +135,21 @@ namespace Sabrina.Commands
                 await ctx.TriggerTypingAsync();
                 await Task.Delay(room.WaitAfterMessage);
             }
-            else if(room.Type == DungeonTextExtension.RoomType.LesserMob)
+            else if (room.Type == DungeonTextExtension.RoomType.LesserMob)
             {
                 await ctx.RespondAsync("Did you finish my Task?");
-                var m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
-                            x => x.Channel.Id == ctx.Channel.Id && x.Author.Id == ctx.Member.Id
-                                                                && Regex.IsMatch(x.Content, Helpers.RegexHelper.ConfirmRegex),
-                            TimeSpan.FromMilliseconds(room.WaitAfterMessage / 4));
+                MessageContext m = await ctx.Client.GetInteractivityModule().WaitForMessageAsync(
+                    x => x.Channel.Id == ctx.Channel.Id && x.Author.Id == ctx.Member.Id
+                                                        && Regex.IsMatch(x.Content, Helpers.RegexHelper.ConfirmRegex),
+                    TimeSpan.FromMilliseconds(room.WaitAfterMessage / 4));
 
                 if (m == null)
                 {
-                    await ctx.RespondAsync($"Well, time's up.");
+                    await ctx.RespondAsync("Well, time\'s up.");
                     // TODO: On Loose
 
                     // Loose Message
-                    builder = new DiscordEmbedBuilder()
+                    builder = new DiscordEmbedBuilder
                     {
                         Color = DiscordColor.Red,
                         Description = room.GetText(DungeonTextExtension.TextType.Failure)
@@ -154,13 +159,14 @@ namespace Sabrina.Commands
 
                     await ctx.TriggerTypingAsync();
                     await Task.Delay(room.WaitAfterMessage);
+                    
                 }
 
                 // If Task Successful
                 if (Regex.IsMatch(m.Message.Content, Helpers.RegexHelper.YesRegex))
                 {
                     // Win Message
-                    builder = new DiscordEmbedBuilder()
+                    builder = new DiscordEmbedBuilder
                     {
                         Color = DiscordColor.Chartreuse,
                         Description = room.GetText(DungeonTextExtension.TextType.Success)
@@ -175,8 +181,9 @@ namespace Sabrina.Commands
                 // If Task failed
                 else if (Regex.IsMatch(m.Message.Content, Helpers.RegexHelper.NoRegex))
                 {
+                    // TODO: On Loose
                     // Loose Message
-                    builder = new DiscordEmbedBuilder()
+                    builder = new DiscordEmbedBuilder
                     {
                         Color = DiscordColor.Red,
                         Description = room.GetText(DungeonTextExtension.TextType.Failure)
@@ -188,14 +195,10 @@ namespace Sabrina.Commands
                     await Task.Delay(room.WaitAfterMessage);
                 }
             }
-            
-            if(room.AdjacentRooms.Length == 0)
+
+            if (room.AdjacentRooms == null || room.AdjacentRooms.Length == 0)
             {
                 // TODO: Last Room. End Dungeon
-            }
-            else
-            {
-
             }
 
             await _context.SaveChangesAsync();
@@ -207,20 +210,23 @@ namespace Sabrina.Commands
             // This will Start a Session with of random Length - for some extra xp
 
             Random rnd = new Random();
-            int length = rnd.Next(Enum.GetNames(typeof(Sabrina.Dungeon.DungeonLogic.Dungeon.DungeonLength)).Length - 1); //Don't include Endless
+            var length =
+                rnd.Next(Enum.GetNames(typeof(DungeonLogic.Dungeon.DungeonLength)).Length - 1); //Don't include Endless
 
-            await ContinueLength(ctx, Enum.GetNames(typeof(Sabrina.Dungeon.DungeonLogic.Dungeon.DungeonLength))[length]);
+            await ContinueLength(ctx, Enum.GetNames(typeof(DungeonLogic.Dungeon.DungeonLength))[length]);
         }
 
         [Command("setdifficulty")]
         public async Task SetDifficulty(CommandContext ctx, string difficulty)
         {
             // Sets the difficulty when in a save zone
-            var session = _context.DungeonSession.FirstOrDefault(ds => ds.UserId == Convert.ToInt64(ctx.User.Id));
+            DungeonSession session =
+                _context.DungeonSession.FirstOrDefault(ds => ds.UserId == Convert.ToInt64(ctx.User.Id));
 
-            if(session == null)
+            if (session == null)
             {
-                _context.UserSettings.Find(Convert.ToInt64(ctx.User.Id)).DungeonDifficulty = (int)Enum.Parse(typeof(UserSettingsExtension.DungeonDifficulty), difficulty);
+                _context.UserSettings.Find(Convert.ToInt64(ctx.User.Id)).DungeonDifficulty =
+                    (int) Enum.Parse(typeof(UserSettingsExtension.DungeonDifficulty), difficulty);
                 await _context.SaveChangesAsync();
             }
         }

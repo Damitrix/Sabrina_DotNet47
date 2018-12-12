@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sabrina", "Sabrina.csproj",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configuration", "Configuration\Configuration.csproj", "{7CF602CC-4FEE-4EE3-BD6E-3B7DECBC59E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonHelper", "..\DungeonHelper\DungeonHelper.csproj", "{865D8D04-3712-4862-B212-816E31227267}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,18 @@ Global
 		{7CF602CC-4FEE-4EE3-BD6E-3B7DECBC59E8}.Release|x64.Build.0 = Release|Any CPU
 		{7CF602CC-4FEE-4EE3-BD6E-3B7DECBC59E8}.Release|x86.ActiveCfg = Release|Any CPU
 		{7CF602CC-4FEE-4EE3-BD6E-3B7DECBC59E8}.Release|x86.Build.0 = Release|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Debug|x64.Build.0 = Debug|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Debug|x86.Build.0 = Debug|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Release|x64.ActiveCfg = Release|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Release|x64.Build.0 = Release|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Release|x86.ActiveCfg = Release|Any CPU
+		{865D8D04-3712-4862-B212-816E31227267}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

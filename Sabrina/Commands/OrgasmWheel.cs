@@ -7,55 +7,49 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Configuration;
+using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using Sabrina.Entities;
+using Sabrina.Entities.Persistent;
+using Sabrina.Models;
+
 namespace Sabrina.Commands
 {
-    using DSharpPlus.CommandsNext;
-    using DSharpPlus.CommandsNext.Attributes;
-    using DSharpPlus.Entities;
-    using Sabrina.Entities;
-    using Sabrina.Entities.Persistent;
-    using Sabrina.Models;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.IO;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     /// <summary>
-    /// The orgasm wheel Command Group.
+    ///     The orgasm wheel Command Group.
     /// </summary>
     internal class OrgasmWheel
     {
-        public DiscordContext _context;
-
         /// <summary>
-        /// The wheel outcomes.
+        ///     The wheel outcomes.
         /// </summary>
         private List<WheelOutcome> wheelOutcomes;
 
-        public OrgasmWheel(DiscordContext context)
-        {
-            _context = new DiscordContext();
-        }
-
         /// <summary>
-        /// The add link async.
+        ///     The add link async.
         /// </summary>
         /// <param name="ctx">
-        /// The Command Context.
+        ///     The Command Context.
         /// </param>
         /// <param name="creator">
-        /// The creator.
+        ///     The creator.
         /// </param>
         /// <param name="type">
-        /// The type.
+        ///     The type.
         /// </param>
         /// <param name="url">
-        /// The url.
+        ///     The url.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        ///     The <see cref="Task" />.
         /// </returns>
         [Command("addlink")]
         [Description("Add a Link to the OrgasmWheel")]
@@ -69,7 +63,7 @@ namespace Sabrina.Commands
         {
             if (Enum.TryParse(type, out Link.ContentType linkType))
             {
-                var link = new Link
+                Link link = new Link
                 {
                     CreatorName = creator,
                     Type = linkType,
@@ -86,34 +80,94 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
-        /// The denial time Command.
+        ///     The denial time Command.
         /// </summary>
         /// <param name="ctx">
-        /// The Command Context.
+        ///     The Command Context.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        ///     The <see cref="Task" />.
         /// </returns>
         [Command("denialtime")]
         [Description("Shows how much longer you should not come")]
         [Aliases("denieduntil")]
         public async Task DenialTimeAsync(CommandContext ctx)
         {
-            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+            DiscordContext context = new DiscordContext();
 
-            var denialString = "You have no denial time left.";
-            var wheelLockedString = "You can spin the wheel at any time.";
+            Users user = await context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+
+            var denialString = "I guess I could give you another chance to cum...";
+            var wheelLockedString = "So how about you test your luck?";
 
             if (user.DenialTime != null && user.DenialTime > DateTime.Now)
             {
-                denialString =
-                    $"You still have {TimeResolver.TimeToString(user.DenialTime.Value - DateTime.Now)} of denial left.";
-            }
+                TimeSpan timeLeft = user.DenialTime.Value - DateTime.Now;
 
-            if (user.LockTime != null && user.LockTime > DateTime.Now)
+                if (timeLeft > TimeSpan.FromHours(24))
+                {
+                    denialString = "Haha, no, you won't cum today.";
+                }
+                else if (timeLeft > TimeSpan.FromHours(12))
+                {
+                    denialString =
+                        "Ask me again after you've slept a bit... Or gone to work or whatever, I don't care.";
+                }
+                else if (timeLeft > TimeSpan.FromHours(6))
+                {
+                    denialString = "Don't be ridiculous. You won't get a chance to cum now.";
+                }
+                else if (timeLeft > TimeSpan.FromHours(2))
+                {
+                    denialString = "Maybe later. I don't feel like you should cum right now.";
+                }
+                else if (timeLeft > TimeSpan.FromMinutes(20))
+                {
+                    denialString = "You won't cum right now. How about you try again in... say... 30 minutes? 50?";
+                }
+                else
+                {
+                    denialString = "No, you won't get a chance now. I want to see you squirm for a few more minutes~";
+                }
+
+                if (user.LockTime != null && user.LockTime < DateTime.Now)
+                {
+                    wheelLockedString = $"But you can spin right now anyways, if you want {Environment.NewLine}" +
+                                        $"*grins* {Environment.NewLine}" +
+                                        "There\'s no way I\'ll let you cum though. You didn\'t deserve it yet.";
+                }
+                else
+                {
+                    wheelLockedString = "And i wouldn't have let you spin anyways.";
+                }
+            }
+            else
             {
-                wheelLockedString =
-                    $"You can spin the wheel again in {TimeResolver.TimeToString(user.LockTime.Value - DateTime.Now)}.";
+                if (user.LockTime != null && user.LockTime > DateTime.Now)
+                {
+                    TimeSpan lockTimeLeft = user.LockTime.Value - DateTime.Now;
+
+                    if (lockTimeLeft > TimeSpan.FromHours(24))
+                    {
+                        wheelLockedString = "But i'm busy today.";
+                    }
+                    else if (lockTimeLeft > TimeSpan.FromHours(12))
+                    {
+                        wheelLockedString = "But i'm tired. I should probably go to bed...";
+                    }
+                    else if (lockTimeLeft > TimeSpan.FromHours(6))
+                    {
+                        wheelLockedString = "But I'm not in the mood right now. Later today maybe.";
+                    }
+                    else if (lockTimeLeft > TimeSpan.FromHours(2))
+                    {
+                        wheelLockedString = "But i'm kinda in the middle of something right now. We can play later.";
+                    }
+                    else
+                    {
+                        wheelLockedString = "I won't let you spin for the moment though :)";
+                    }
+                }
             }
 
             await ctx.RespondAsync($"Hey {(await ctx.Client.GetUserAsync(Convert.ToUInt64(user.UserId))).Mention},\n" +
@@ -122,13 +176,13 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
-        /// The purge links command.
+        ///     The purge links command.
         /// </summary>
         /// <param name="ctx">
-        /// The Command Context.
+        ///     The Command Context.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        ///     The <see cref="Task" />.
         /// </returns>
         [Command("purgelinks")]
         [Description("Purges Links")]
@@ -137,22 +191,18 @@ namespace Sabrina.Commands
         {
             List<Link> links = await Link.LoadAll();
 
-            var linksToDelete = new List<Link>();
+            List<Link> linksToDelete = new List<Link>();
 
-            foreach (var origLink in links)
-            {
-                foreach (var currentLink in links)
+            foreach (Link origLink in links)
+            foreach (Link currentLink in links)
+                if (currentLink.FileName != origLink.FileName && currentLink.Url == origLink.Url)
                 {
-                    if (currentLink.FileName != origLink.FileName && currentLink.Url == origLink.Url)
-                    {
-                        linksToDelete.Add(currentLink);
-                    }
+                    linksToDelete.Add(currentLink);
                 }
-            }
 
-            string outString = string.Empty;
+            var outString = string.Empty;
 
-            foreach (var link in linksToDelete)
+            foreach (Link link in linksToDelete)
             {
                 outString += link.FileName + "\n";
                 link.Delete();
@@ -162,25 +212,28 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
-        /// The remove profile async.
+        ///     The remove profile async.
         /// </summary>
         /// <param name="ctx">
-        /// The Command Context.
+        ///     The Command Context.
         /// </param>
         /// <param name="dcUser">
-        /// The Discord user.
+        ///     The Discord user.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        ///     The <see cref="Task" />.
         /// </returns>
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1305:FieldNamesMustNotUseHungarianNotation", Justification = "Reviewed. Suppression is OK here.")]
+        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1305:FieldNamesMustNotUseHungarianNotation", Justification =
+            "Reviewed. Suppression is OK here.")]
         [Command("resetuser")]
         [Description("Reset a Users saved Data")]
         [Aliases("ru")]
         [RequireRolesAttribute("mistress", "minion", "techno kitty")]
-        public async Task RemoveProfileAsync(CommandContext ctx, [Description("Mention the user here")] DiscordUser dcUser)
+        public async Task RemoveProfileAsync(CommandContext ctx,
+            [Description("Mention the user here")] DiscordUser dcUser)
         {
-            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+            DiscordContext context = new DiscordContext();
+            Users user = await context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
 
             user.DenialTime = null;
             user.BanTime = null;
@@ -188,19 +241,19 @@ namespace Sabrina.Commands
             user.SpecialTime = null;
             user.RuinTime = null;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             await ctx.RespondAsync($"I've reset the Profile of {dcUser.Mention}.");
         }
 
         /// <summary>
-        /// The show links Command.
+        ///     The show links Command.
         /// </summary>
         /// <param name="ctx">
-        /// The Command Context.
+        ///     The Command Context.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        ///     The <see cref="Task" />.
         /// </returns>
         [Command("showlinks")]
         [Description("Shows all Links")]
@@ -211,7 +264,7 @@ namespace Sabrina.Commands
 
             var text = "Here are all Links:\n```";
 
-            foreach (var link in links)
+            foreach (Link link in links)
             {
                 if ((text + link.Url).Length > 1999)
                 {
@@ -229,38 +282,69 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
-        /// The orgasm wheel Command.
+        ///     The orgasm wheel Command.
         /// </summary>
         /// <param name="ctx">
-        /// The Command Context.
+        ///     The Command Context.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        ///     The <see cref="Task" />.
         /// </returns>
         [Command("orgasmwheel")]
         [Description("Spins a wheel")]
         public async Task SpinNewWheelAsync(CommandContext ctx)
         {
-            var user = await _context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
-            var settings = await _context.UserSettings.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+            DiscordContext context = new DiscordContext();
+            Users user = await context.Users.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+            UserSettings userSettings = await context.UserSettings.FindAsync(Convert.ToInt64(ctx.Message.Author.Id));
+            SabrinaSettings sabrinaSettings = await context.SabrinaSettings.FindAsync(Convert.ToInt64(ctx.Guild.Id));
+
+            if (sabrinaSettings == null)
+            {
+                sabrinaSettings = new SabrinaSettings
+                {
+                    GuildId = Convert.ToInt64(ctx.Guild.Id),
+                    WheelChannel = Convert.ToInt64(ctx.Channel.Id)
+                };
+
+                await context.SabrinaSettings.AddAsync(sabrinaSettings);
+                await context.SaveChangesAsync();
+            }
+
+            if (sabrinaSettings.WheelChannel == null)
+            {
+                sabrinaSettings.WheelChannel = Convert.ToInt64(ctx.Channel.Id);
+                await context.SaveChangesAsync();
+            }
+
+            if (Convert.ToInt64(ctx.Channel.Id) != sabrinaSettings.WheelChannel.Value)
+            {
+                DiscordChannel channel =
+                    await ctx.Client.GetChannelAsync(Convert.ToUInt64(sabrinaSettings.WheelChannel));
+
+                await ctx.RespondAsync(
+                    $"You cannot issue this command from this Channel. Please use {channel.Mention}");
+                return;
+            }
 
             if (user == null)
             {
                 user = new Users();
             }
 
-            if (settings == null)
+            if (userSettings == null)
             {
-                settings = new Models.UserSettings();
+                userSettings = new UserSettings();
             }
 
-            var chances = await _context.WheelChances.FindAsync(settings.WheelDifficulty ?? 2);
+            WheelChances chances = await context.WheelChances.FindAsync(userSettings.WheelDifficulty ?? 2);
 
             if (user.LockTime != null && user.LockTime > DateTime.Now)
             {
-                var timeUntilFree = user.LockTime - DateTime.Now;
+                TimeSpan? timeUntilFree = user.LockTime - DateTime.Now;
 
-                var newTimeUntilFree = TimeSpan.FromTicks(timeUntilFree.Value.Ticks * Helpers.RandomGenerator.RandomInt(1, 4));
+                TimeSpan newTimeUntilFree =
+                    TimeSpan.FromTicks(timeUntilFree.Value.Ticks * Helpers.RandomGenerator.RandomInt(1, 4));
 
                 if (newTimeUntilFree > TimeSpan.FromDays(365))
                 {
@@ -271,22 +355,22 @@ namespace Sabrina.Commands
                 if (Helpers.RandomGenerator.RandomInt(0, 4) > 0)
                 {
                     await ctx.RespondAsync(
-                        $"Oho, it seems like I told you to stay away from spinning the wheel for {TimeResolver.TimeToString(timeUntilFree.Value)}.\n" +
-                        $"That means you get another {TimeResolver.TimeToString(newTimeUntilFree)} of no spinning {DiscordEmoji.FromName(ctx.Client, Configuration.Config.Emojis.Blush)}");
+                        "Oho, it seems like I told you to stay away from spinning the wheel...\n" +
+                        $"That means you get some more extra time of no spinning {DiscordEmoji.FromName(ctx.Client, Config.Emojis.Blush)}");
 
                     user.LockTime += newTimeUntilFree;
-                    await _context.SaveChangesAsync();
+                    await context.SaveChangesAsync();
                     return;
                 }
 
                 await ctx.RespondAsync(
-                    $"I believe i have told you not to spin the wheel for {TimeResolver.TimeToString(timeUntilFree.Value)}...\n" +
-                    $"But since i'm awesome, you won't get punishment for it this time. {DiscordEmoji.FromName(ctx.Client, Configuration.Config.Emojis.Blush)}");
+                    "I believe i have told you not to spin the wheel.\n" +
+                    $"But since i'm awesome, you won't get punishment for it... Today. {DiscordEmoji.FromName(ctx.Client, Config.Emojis.Blush)}");
             }
 
             var addedChance = 0;
 
-            int outcomeChanceValue = Helpers.RandomGenerator.RandomInt(
+            var outcomeChanceValue = Helpers.RandomGenerator.RandomInt(
                 0,
                 chances.Denial + chances.Task + chances.Ruin + chances.Orgasm);
             Console.WriteLine("Chance Rolled: " + outcomeChanceValue);
@@ -295,55 +379,57 @@ namespace Sabrina.Commands
             Console.WriteLine("RuinChance Chance: " + chances.Ruin);
             Console.WriteLine("OrgasmChance Chance: " + chances.Orgasm);
             Console.WriteLine("addedChance Chance: " + addedChance);
-            var outcome = SlaveReportsExtension.Outcome.task;
+            SlaveReportsExtension.Outcome outcome = SlaveReportsExtension.Outcome.Task;
             if (outcomeChanceValue < chances.Denial)
             {
-                outcome = SlaveReportsExtension.Outcome.denial;
+                outcome = SlaveReportsExtension.Outcome.Denial;
             }
             else if (outcomeChanceValue < chances.Denial + chances.Task)
             {
-                outcome = SlaveReportsExtension.Outcome.task;
+                outcome = SlaveReportsExtension.Outcome.Task;
             }
             else if (outcomeChanceValue < chances.Denial + chances.Task + chances.Ruin)
             {
-                outcome = SlaveReportsExtension.Outcome.ruin;
+                outcome = SlaveReportsExtension.Outcome.Ruin;
             }
             else
             {
-                outcome = SlaveReportsExtension.Outcome.orgasm;
+                outcome = SlaveReportsExtension.Outcome.Orgasm;
             }
 
             if (user.DenialTime != null && user.DenialTime > DateTime.Now)
             {
-                var timeUntilFree = user.DenialTime - DateTime.Now;
-                if (outcome.HasFlag(SlaveReportsExtension.Outcome.orgasm)
-                    || outcome.HasFlag(SlaveReportsExtension.Outcome.ruin))
+                TimeSpan? timeUntilFree = user.DenialTime - DateTime.Now;
+                if (outcome.HasFlag(SlaveReportsExtension.Outcome.Orgasm)
+                    || outcome.HasFlag(SlaveReportsExtension.Outcome.Ruin))
                 {
                     await ctx.RespondAsync(
-                        $"Haha, I would've let you cum this time, but since you're still denied for {TimeResolver.TimeToString(timeUntilFree.Value)}, "
-                        + $"that won't happen {DiscordEmoji.FromName(ctx.Client, Configuration.Config.Emojis.Blush)}.\n" +
-                        $"As a punishment, you're gonna do your Task anyways though. Any additional denial time will be added to your existing time.");
+                        "Haha, I would\'ve let you cum this time, but since you\'re still denied, "
+                        + $"that won't happen {DiscordEmoji.FromName(ctx.Client, Config.Emojis.Blush)}.\n" +
+                        "As a punishment, you\'re gonna do your Task anyways though.");
                 }
                 else
                 {
                     await ctx.RespondAsync(
-                        $"Well, you're still denied for {TimeResolver.TimeToString(timeUntilFree.Value)}.\n"
-                        + $"You still want to do something? Then here you go."
-                        + $"\nAnd as a bonus, if you get more denial time, it will get added on top of your existing time! {DiscordEmoji.FromName(ctx.Client, Configuration.Config.Emojis.Blush)}");
+                        "Well, i told you, that you\'d be denied now.\n"
+                        + "You still want to do something? Then here you go."
+                        + $"\nAnd as a bonus, if i decide so, you'll get even more denial! {DiscordEmoji.FromName(ctx.Client, Config.Emojis.Blush)}");
                 }
+
                 await Task.Delay(1500);
-                outcome = SlaveReportsExtension.Outcome.denial | SlaveReportsExtension.Outcome.task;
+                outcome = SlaveReportsExtension.Outcome.Denial | SlaveReportsExtension.Outcome.Task;
             }
 
             WheelOutcome wheelOutcome = null;
 
             while (wheelOutcome == null)
             {
-                this.wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(outcome, settings, _context).ToList();
+                wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(outcome, userSettings, context)
+                    .ToList();
 
-                this.wheelOutcomes = this.wheelOutcomes.Where(e => outcome.HasFlag(e.Outcome)).ToList();
+                wheelOutcomes = wheelOutcomes.Where(e => outcome.HasFlag(e.Outcome)).ToList();
 
-                if (this.wheelOutcomes.Count < 1)
+                if (wheelOutcomes.Count < 1)
                 {
                     continue;
                 }
@@ -351,15 +437,12 @@ namespace Sabrina.Commands
                 // Choose an outcome by summing up the chance values of all possible outcomes and then generating a random number inside those.
                 var combinedChance = 0;
 
-                foreach (var currentOutcome in this.wheelOutcomes)
-                {
-                    combinedChance += currentOutcome.Chance;
-                }
+                foreach (WheelOutcome currentOutcome in wheelOutcomes) combinedChance += currentOutcome.Chance;
 
                 var chance = 0;
-                int minChance = Helpers.RandomGenerator.RandomInt(0, combinedChance);
+                var minChance = Helpers.RandomGenerator.RandomInt(0, combinedChance);
 
-                foreach (var currentOutcome in this.wheelOutcomes)
+                foreach (WheelOutcome currentOutcome in wheelOutcomes)
                 {
                     chance += currentOutcome.Chance;
                     if (minChance < chance)
@@ -392,7 +475,7 @@ namespace Sabrina.Commands
 
             user.DenialTime += wheelOutcome.DenialTime;
             user.LockTime += wheelOutcome.WheelLockedTime;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             if (wheelOutcome.Embed != null)
             {
@@ -405,58 +488,58 @@ namespace Sabrina.Commands
         }
 
         /// <summary>
-        /// The spin wheel Command.
+        ///     The spin wheel Command.
         /// </summary>
         /// <param name="ctx">
-        /// The Command Context.
+        ///     The Command Context.
         /// </param>
         /// <returns>
-        /// A <see cref="Task"/>.
+        ///     A <see cref="Task" />.
         /// </returns>
         [Command("oldorgasmwheel")]
         [Description("Spins the old wheel. Just in case the new one is broken.")]
         [Aliases("orgasmwheel1", "orgasmwheel2")]
         public async Task SpinWheelAsync(CommandContext ctx)
         {
-            if (ctx.Channel.Name != Configuration.Config.Channels.Wheel)
+            if (ctx.Channel.Name != Config.Channels.Wheel)
             {
                 return;
             }
 
-            int outcome = Helpers.RandomGenerator.RandomInt(0, 100);
+            var outcome = Helpers.RandomGenerator.RandomInt(0, 100);
 
             var line = "Sorry, no Entries yet.";
             if (outcome < 92)
             {
-                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Denial.txt");
+                line = await LoadLineAsync($"{Config.BotFileFolders.WheelResponses}/Denial.txt");
             }
             else if (outcome < 96)
             {
-                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Ruin.txt");
+                line = await LoadLineAsync($"{Config.BotFileFolders.WheelResponses}/Ruin.txt");
             }
             else
             {
-                line = await this.LoadLineAsync($"{Configuration.Config.BotFileFolders.WheelResponses}/Orgasm.txt");
+                line = await LoadLineAsync($"{Config.BotFileFolders.WheelResponses}/Orgasm.txt");
             }
 
             await ctx.RespondAsync(line);
         }
 
         /// <summary>
-        /// Loads a random Line from a TextDocument
+        ///     Loads a random Line from a TextDocument
         /// </summary>
         /// <param name="file">
-        /// The file path.
+        ///     The file path.
         /// </param>
         /// <returns>
-        /// The <see cref="Task"/>.
+        ///     The <see cref="Task" />.
         /// </returns>
         private async Task<string> LoadLineAsync(string file)
         {
-            using (var reader = File.OpenText(file))
+            using (StreamReader reader = File.OpenText(file))
             {
-                string fileText = await reader.ReadToEndAsync();
-                string[] lines = fileText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                var fileText = await reader.ReadToEndAsync();
+                string[] lines = fileText.Split(new[] {Environment.NewLine}, StringSplitOptions.None);
                 return lines[Helpers.RandomGenerator.RandomInt(0, lines.Length)];
             }
         }

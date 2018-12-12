@@ -8,6 +8,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using System.Timers;
+using Configuration;
 
 namespace Sabrina.Bots
 {
@@ -55,7 +56,7 @@ namespace Sabrina.Bots
             Task.Run(async () => await UpdateDatabase());
         }
 
-        public static async Task PostRandom(DiscordClient client, DiscordContext context)
+        public static async Task PostRandom(DiscordClient client, DiscordContext context, DiscordChannel[] channels)
         {
             TumblrPosts post = null;
             int cDays = 30;
@@ -72,12 +73,10 @@ namespace Sabrina.Bots
                     cDays--;
                     continue;
                 }
-                foreach (var channel in Configuration.Config.Tumblr.ChannelsToPostTo)
+                foreach (var channel in channels)
                 {
                     var rndInt = rnd.Next(count);
-                    post = validPosts.Skip(count - 1).First();
-
-                    var cToPostTo = await client.GetChannelAsync(channel);
+                    post = validPosts.Skip(rndInt).First();
 
                     var builder = new DiscordEmbedBuilder()
                     {
@@ -97,19 +96,27 @@ namespace Sabrina.Bots
                     post.LastPosted = DateTime.Now;
 
                     await context.SaveChangesAsync();
-                    await cToPostTo.SendMessageAsync(embed: builder.Build());
+                    await channel.SendMessageAsync(embed: builder.Build());
                 }
             }
         }
 
         public async Task CheckLoli(MessageReactionAddEventArgs e)
         {
-            if(e.Message.Embeds.Count != 1)
+            var name = e.Emoji.GetDiscordName();
+            if (name != Config.Emojis.Underage)
             {
                 return;
             }
 
-            bool isParceville = Int32.TryParse(e.Message.Embeds[0].Footer.Text, out int id);
+            var msg = await e.Client.Guilds.First(g => g.Key == e.Message.Channel.GuildId).Value.GetChannel(e.Message.ChannelId)
+                .GetMessageAsync(e.Message.Id);
+            if(msg.Embeds.Count != 1)
+            {
+                return;
+            }
+
+            bool isParceville = ulong.TryParse(msg.Embeds[0].Footer.Text, out ulong id);
 
             if (!isParceville)
             {
@@ -118,9 +125,11 @@ namespace Sabrina.Bots
 
             DiscordContext context = new DiscordContext();
 
-            var post = await context.TumblrPosts.FindAsync(id);
+            var post = await context.TumblrPosts.FindAsync(Convert.ToInt64(id));
             post.IsLoli = 1;
             await context.SaveChangesAsync();
+
+            await msg.DeleteAsync(":underage:");
         }
 
         /// <summary>
@@ -212,7 +221,7 @@ namespace Sabrina.Bots
         private async void _postTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             var lastPost = _context.SabrinaSettings.First().LastTumblrPost;
-            if (lastPost != null && lastPost > DateTime.Now - TimeSpan.FromHours(1))
+            if (lastPost != null && lastPost > DateTime.Now - TimeSpan.FromHours(2))
             {
                 return;
             }
@@ -230,7 +239,9 @@ namespace Sabrina.Bots
 
         private async Task PostRandom()
         {
-            await PostRandom(_client, _context);
+            var channels = _context.SabrinaSettings.Where(ss => ss.FeetChannel != null).AsEnumerable().Select(async ss => await _client.GetChannelAsync(Convert.ToUInt64(ss.FeetChannel))).ToArray();
+            Task.WaitAll(channels);
+            await PostRandom(_client, _context, channels.Select(t => t.Result).ToArray());
         }
 
         private async Task UpdateDatabase()

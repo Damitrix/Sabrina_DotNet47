@@ -288,7 +288,7 @@ namespace Sabrina.Commands
 
             var responseColor = DiscordColor.Green;
 
-            if (outcome == SlaveReportsExtension.Outcome.denial.ToString())
+            if (outcome == SlaveReportsExtension.Outcome.Denial.ToString())
             {
                 Tuple<string, string>[] templates =
                     {
@@ -311,7 +311,7 @@ namespace Sabrina.Commands
                 responseColor = DiscordColor.Red;
             }
 
-            if (outcome == SlaveReportsExtension.Outcome.ruin.ToString())
+            if (outcome == SlaveReportsExtension.Outcome.Ruin.ToString())
             {
                 Tuple<string, string>[] templates =
                     {
@@ -334,7 +334,7 @@ namespace Sabrina.Commands
                 responseColor = DiscordColor.Yellow;
             }
 
-            if (outcome == SlaveReportsExtension.Outcome.orgasm.ToString())
+            if (outcome == SlaveReportsExtension.Outcome.Orgasm.ToString())
             {
                 Tuple<string, string>[] templates =
                     {
@@ -357,7 +357,7 @@ namespace Sabrina.Commands
 
             if (Convert.ToInt64(ctx.Message.Author.Id) == 347004618183540740 && DateTime.Now < new DateTime(2018, 9, 13))
             {
-                if (outcome == SlaveReportsExtension.Outcome.denial.ToString())
+                if (outcome == SlaveReportsExtension.Outcome.Denial.ToString())
                 {
                     prefix = "Enjoy your 21 days, ";
                     postfix = " . I'm sure you're having fun :)";

@@ -36,7 +36,7 @@ namespace Sabrina.Commands
         [Command("chances"), RequireRolesAttribute("mistress", "minion", "techno kitty")]
         public async Task GetChancesAsync(CommandContext ctx)
         {
-            List<WheelOutcome> wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(SlaveReportsExtension.Outcome.task)
+            List<WheelOutcome> wheelOutcomes = ReflectiveEnumerator.GetEnumerableOfType<WheelOutcome>(SlaveReportsExtension.Outcome.Task)
                 .ToList();
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder();
             builder.WithDescription(

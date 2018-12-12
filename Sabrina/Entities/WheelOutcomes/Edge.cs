@@ -108,7 +108,7 @@ namespace Sabrina.Entities.WheelOutcomes
             }
 
             this.Embed = builder.Build();
-            this.Outcome = SlaveReportsExtension.Outcome.task;
+            this.Outcome = SlaveReportsExtension.Outcome.Task;
         }
 
         /// <summary>

@@ -230,6 +230,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bots\HelpBot.cs" />
     <Compile Include="Bots\TumblrBot.cs" />
     <Compile Include="Commands\Edges.cs" />
     <Compile Include="Commands\ExternalAPI.cs" />
@@ -259,26 +260,23 @@
     <Compile Include="Entities\StartTimes.cs" />
     <Compile Include="Entities\TimeResolver.cs" />
     <Compile Include="Bots\PornhubBot.cs" />
+    <Compile Include="Models\Boost.cs" />
     <Compile Include="Models\DBPassword.cs" />
     <Compile Include="Models\DiscordContext.cs" />
     <Compile Include="Models\DungeonMob.cs" />
+    <Compile Include="Models\DungeonRoomEnterMessage.cs" />
     <Compile Include="Models\DungeonSession.cs" />
-    <Compile Include="Models\DungeonSessionExtension.cs" />
     <Compile Include="Models\DungeonText.cs" />
-    <Compile Include="Models\DungeonTextExtension.cs" />
     <Compile Include="Models\DungeonVariable.cs" />
-    <Compile Include="Models\DungeonVariableExtension.cs" />
     <Compile Include="Models\KinkHashes.cs" />
     <Compile Include="Models\Messages.cs" />
     <Compile Include="Models\PornhubVideos.cs" />
     <Compile Include="Models\Puns.cs" />
     <Compile Include="Models\SabrinaSettings.cs" />
     <Compile Include="Models\Slavereports.cs" />
-    <Compile Include="Models\SlaveReportsExtension.cs" />
     <Compile Include="Models\TumblrPosts.cs" />
     <Compile Include="Models\Users.cs" />
     <Compile Include="Models\UserSettings.cs" />
-    <Compile Include="Models\UserSettingsExtension.cs" />
     <Compile Include="Models\WheelChances.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -298,6 +296,10 @@
     <Content Include="Commands\KinkList\KinkListCode.js" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DungeonHelper\DungeonHelper.csproj">
+      <Project>{865D8D04-3712-4862-B212-816E31227267}</Project>
+      <Name>DungeonHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="Configuration\Configuration.csproj">
       <Project>{7cf602cc-4fee-4ee3-bd6e-3b7decbc59e8}</Project>
       <Name>Configuration</Name>

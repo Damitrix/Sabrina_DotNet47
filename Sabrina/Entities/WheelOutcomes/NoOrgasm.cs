@@ -31,42 +31,26 @@ namespace Sabrina.Entities.WheelOutcomes
         public NoOrgasm(SlaveReportsExtension.Outcome outcome, UserSettings settings, DiscordContext context) : base(outcome, settings, context)
         {
             int minNum = 1;
-            int maxNum = 6;
-            string timeString = "hour";
+            int maxNum = 4;
 
-            if (Helpers.RandomGenerator.RandomInt(0, 2) == 0)
+            if (settings.WheelDifficulty != null && settings.WheelDifficulty.Value != 0)
             {
-                maxNum = 4;
-                timeString = "day";
+                maxNum *= settings.WheelDifficulty.Value;
             }
 
             int rndNumber = Helpers.RandomGenerator.RandomInt(minNum, maxNum);
 
-            switch (timeString)
-            {
-                case "hour":
-                    this.DenialTime = new TimeSpan(rndNumber, 0, 0);
-                    break;
-
-                case "day":
-                    this.DenialTime = new TimeSpan(rndNumber, 0, 0, 0);
-                    break;
-            }
-
-            if (rndNumber > 1)
-            {
-                timeString += "s";
-            }
+            this.DenialTime = new TimeSpan(rndNumber, 0, 0);
 
             DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
             {
                 Title = "No Orgasm for you!",
-                Description = $"Try again in {rndNumber} {timeString} :P"
+                Description = "Try again in a few hours :P"
             };
 
             this.Embed = builder.Build();
-            this.Text = $"No orgasm for you! Try again in {rndNumber} {timeString} :P";
-            this.Outcome = SlaveReportsExtension.Outcome.denial;
+            this.Text = "No orgasm for you! Try again in a few hours :P";
+            this.Outcome = SlaveReportsExtension.Outcome.Denial;
         }
 
         /// <summary>

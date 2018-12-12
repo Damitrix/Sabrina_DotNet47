@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Sabrina.Entities;
 
 namespace Sabrina.Models
 {
@@ -16,7 +15,9 @@ namespace Sabrina.Models
         {
         }
 
+        public virtual DbSet<Boost> Boost { get; set; }
         public virtual DbSet<DungeonMob> DungeonMob { get; set; }
+        public virtual DbSet<DungeonRoomEnterMessage> DungeonRoomEnterMessage { get; set; }
         public virtual DbSet<DungeonSession> DungeonSession { get; set; }
         public virtual DbSet<DungeonText> DungeonText { get; set; }
         public virtual DbSet<DungeonVariable> DungeonVariable { get; set; }
@@ -41,6 +42,13 @@ namespace Sabrina.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Boost>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.Date).HasColumnType("datetime");
+            });
+
             modelBuilder.Entity<DungeonMob>(entity =>
             {
                 entity.ToTable("Dungeon.Mob");
@@ -50,6 +58,17 @@ namespace Sabrina.Models
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<DungeonRoomEnterMessage>(entity =>
+            {
+                entity.ToTable("Dungeon.RoomEnterMessage");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.Text)
+                    .IsRequired()
+                    .HasMaxLength(500);
             });
 
             modelBuilder.Entity<DungeonSession>(entity =>
@@ -180,6 +199,8 @@ namespace Sabrina.Models
                 entity.Property(e => e.LastTumblrPost).HasColumnType("datetime");
 
                 entity.Property(e => e.LastTumblrUpdate).HasColumnType("datetime");
+
+                entity.Property(e => e.LastWheelHelpPost).HasColumnType("datetime");
             });
 
             modelBuilder.Entity<Slavereports>(entity =>

@@ -86,6 +86,7 @@ namespace Sabrina
 
             // TODO: Looks weird, cause unused.
             PornhubBot pornhubBot = new PornhubBot(this.client);
+            HelpBot helpBot = new HelpBot(this.client);
 
             this.tmblrBot = new TumblrBot(this.client, _context);
 

@@ -41,39 +41,39 @@ namespace Sabrina.Entities.WheelOutcomes
 
             switch (outcome)
             {
-                case SlaveReportsExtension.Outcome.task:
+                case SlaveReportsExtension.Outcome.Task:
                     denialtext = "then spin again";
-                    this.Outcome = SlaveReportsExtension.Outcome.task;
+                    this.Outcome = SlaveReportsExtension.Outcome.Task;
                     break;
 
-                case SlaveReportsExtension.Outcome.denial:
+                case SlaveReportsExtension.Outcome.Denial:
                     denialtext = "deny your orgasm";
                     this.DenialTime = new TimeSpan(8, 0, 0);
-                    this.Outcome = SlaveReportsExtension.Outcome.denial;
+                    this.Outcome = SlaveReportsExtension.Outcome.Denial;
                     break;
 
-                case SlaveReportsExtension.Outcome.ruin:
+                case SlaveReportsExtension.Outcome.Ruin:
                     denialtext = "ruin your orgasm";
-                    this.Outcome = SlaveReportsExtension.Outcome.ruin;
+                    this.Outcome = SlaveReportsExtension.Outcome.Ruin;
                     break;
 
-                case SlaveReportsExtension.Outcome.orgasm:
+                case SlaveReportsExtension.Outcome.Orgasm:
                     denialtext = "enjoy a full orgasm";
-                    this.Outcome = SlaveReportsExtension.Outcome.orgasm;
+                    this.Outcome = SlaveReportsExtension.Outcome.Orgasm;
                     break;
 
-                case SlaveReportsExtension.Outcome.denial | SlaveReportsExtension.Outcome.task:
+                case SlaveReportsExtension.Outcome.Denial | SlaveReportsExtension.Outcome.Task:
                     var chance = Helpers.RandomGenerator.RandomInt(0, 9);
                     if (chance < 5)
                     {
                         denialtext = "deny your orgasm";
                         this.DenialTime = new TimeSpan(8, 0, 0);
-                        this.Outcome = SlaveReportsExtension.Outcome.denial;
+                        this.Outcome = SlaveReportsExtension.Outcome.Denial;
                     }
                     else
                     {
                         denialtext = "then spin again";
-                        this.Outcome = SlaveReportsExtension.Outcome.task;
+                        this.Outcome = SlaveReportsExtension.Outcome.Task;
                     }
 
                     break;
@@ -81,7 +81,7 @@ namespace Sabrina.Entities.WheelOutcomes
 
             Link link;
 
-            if (this.Outcome == SlaveReportsExtension.Outcome.task)
+            if (this.Outcome == SlaveReportsExtension.Outcome.Task)
             {
                 link = this.GetLinkFromRandomTumblr(this.GetPostCount());
             }
@@ -122,9 +122,9 @@ namespace Sabrina.Entities.WheelOutcomes
 
             var rerollIn = string.Empty;
 
-            if (this.Outcome != SlaveReportsExtension.Outcome.task)
+            if (this.Outcome != SlaveReportsExtension.Outcome.Task)
             {
-                rerollIn = "You are allowed to re-roll in 8 hours.";
+                rerollIn = "You are not allowed to re-roll for now.";
                 this.WheelLockedTime = new TimeSpan(8, 0, 0);
             }
 

@@ -128,7 +128,7 @@ namespace Sabrina.Commands
             await dm.SendMessageAsync($"Splendid! Now that you know how this works, let's start with the Settings! Just Gimi a second to check if you already have some saved.");
             await dm.TriggerTypingAsync();
 
-            var userSettings = _context.UserSettings.Find(ctx.User);
+            var userSettings = _context.UserSettings.Find(Convert.ToInt64(ctx.User.Id));
 
             if (userSettings == null)
             {
