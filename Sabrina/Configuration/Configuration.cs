@@ -7,12 +7,25 @@ namespace Configuration
         private static string _cDir;
         private static string CDir => _cDir ?? (_cDir = Directory.GetCurrentDirectory());
 
+        private static string _dbPassword;
+        private static string DBPassword
+        {
+            get
+            {
+                if (_dbPassword == null)
+                {
+                    _dbPassword = File.ReadAllText(Directory.GetCurrentDirectory() + "/DBPassword.cfg");
+                }
+
+                return _dbPassword;
+            }
+        }
+
         public static string DataBaseConnectionString
         {
             get
             {
-                var pwd = File.ReadAllText(Directory.GetCurrentDirectory() + "/DBPassword.cfg");
-                return $"Server=joidb.ddns.net;Database=Discord;user id=DiscordUser;password={pwd}";
+                return $"Server=joidb.ddns.net;Database=Discord;user id=DiscordUser;password={DBPassword}";
             }
         }
 

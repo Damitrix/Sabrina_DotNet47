@@ -22,7 +22,44 @@ namespace Sabrina.Bots
             _context = new DiscordContext();
             _client = client;
 
+            //SendPatreonUpdateOnce().GetAwaiter().GetResult();
+
             SetTimer();
+        }
+
+        private async Task SendPatreonUpdateOnce()
+        {
+            var channel = _client.GetChannelAsync(448781033278799882);
+
+            DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+            {
+                Author = new DiscordEmbedBuilder.EmbedAuthor()
+                {
+                    IconUrl = "https://cdn.discordapp.com/avatars/335437183127257089/a_1a4467f73d1b56fcbf996b4bb9d8b663.gif?size=2048",
+                    Name = "Mistress Aki / YourAnimeAddiction",
+                    Url = ""
+                },
+                Color = DiscordColor.Gold,
+                Description = @"Closing Patreon
+
+                I'm sure many of you are aware of the Patreon debacle going on right now. I'm not about to get political on a hentai community Patreon page,
+                but suffice it to say that I do not support censorship in any form, especially targeted censorship, and will be unpublishing this page on JANUARY 1st 2019.I truly want to thank everyone who has been a patron and supported me in ways I could never have imagined. Thank you so much<3
+                That being said, let's make some points clear:
+
+                - Patreon - exclusive content(videos and pictures) will continue to be released publicly, they will not vanish forever.
+                -I do not have a Patreon replacement since just about every service does not allow adult /explicit content.
+                -I plan to still create new, free, public content in the future.
+                -I will return to Discord soon (currently lost my 2FA phone and can't login to Discord >.<).
+
+                Thanks again everyone and I hope you have a wonderful New Year! <3",
+                Footer = new DiscordEmbedBuilder.EmbedFooter()
+                {
+                    IconUrl = @"https://c5.patreon.com/external/logo/downloads_logomark_color_on_white@2x.png",
+                    Text = "Patreon Post"
+                }
+            };
+
+            await _client.SendMessageAsync(await channel,embed: builder.Build());
         }
 
         private async Task OnTimerElapse()

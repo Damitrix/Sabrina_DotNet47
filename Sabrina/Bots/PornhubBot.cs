@@ -1,4 +1,9 @@
-﻿using Configuration;
+﻿using System.Net;
+using System.Net.Cache;
+using Configuration;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Sabrina.Models;
 
 namespace Sabrina.Pornhub
 {
@@ -9,6 +14,7 @@ namespace Sabrina.Pornhub
     using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -28,112 +34,109 @@ namespace Sabrina.Pornhub
 
         private async Task MainThread()
         {
-            this.IndexedVideos = (await Video.LoadAll()).ToList();
-
             while (!Exit)
             {
-                foreach (string channel in Config.Pornhub.Channels)
+                var context = new DiscordContext();
+                foreach (var platform in context.Joiplatform)
                 {
-                    var thrownError = false;
-
-                    do
+                    foreach (var link in context.CreatorPlatformLink)
                     {
-                        try
+                        Video newestVideo = null;
+
+                        switch (platform.BaseUrl)
                         {
-                            string url = $"http://www.pornhub.com/users/{channel}/videos";
-                            var web = new HtmlWeb();
-                            var doc = web.Load(url);
-                            var node = doc.DocumentNode.SelectSingleNode(
-                                "//*[@class=\"videos row-3-thumbs\"]/li[1]/div/div[1]/div/a");
-                            if (node == null)
-                            {
-                                continue;
-                            }
-
-                            string videoLink = node.GetAttributeValue("href", string.Empty);
-                            if (!string.IsNullOrEmpty(videoLink))
-                            {
-                                url = $"http://www.pornhub.com{videoLink}";
-                                web = new HtmlWeb();
-                                doc = web.Load(url);
-
-                                var titleNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:title").FirstOrDefault();
-                                var imageNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:image").FirstOrDefault();
-
-                                if (titleNode == null || imageNode == null)
-                                {
-                                    await Task.Delay(5000);
-                                    doc = web.Load(url);
-                                    await Task.Delay(5000);
-                                    titleNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:title").FirstOrDefault();
-                                    imageNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:image").FirstOrDefault();
-                                }
-
-                                if (titleNode == null || imageNode == null)
-                                {
-                                    thrownError = true;
-                                    await Task.Delay(10000);
-                                    continue;
-                                }
-
-                                var video = new Video
-                                {
-                                    Url = url,
-                                    Creator = channel,
-                                    CreationDate = DateTime.Now,
-                                    ImageUrl = imageNode.GetAttributeValue("content", string.Empty),
-                                    Title = titleNode.GetAttributeValue("content", string.Empty)
-                                };
-
-                                var containsVideo = false;
-
-                                foreach (var cVideo in this.IndexedVideos)
-                                    if (cVideo.Url == video.Url)
-                                    {
-                                        containsVideo = true;
-                                        break;
-                                    }
-
-                                if (!containsVideo)
-                                {
-                                    this.IndexedVideos.Add(video);
-                                    await video.Save();
-
-                                    var builder = new DiscordEmbedBuilder
-                                    {
-                                        Title = $"{video.Creator} has Uploaded a new Video!",
-                                        Timestamp = DateTime.Now,
-                                        Url = video.Url
-                                    };
-                                    builder.AddField("Title", video.Title);
-                                    builder.ThumbnailUrl = video.ImageUrl;
-                                    builder.AddField("CreationDate", video.CreationDate.ToLongDateString());
-
-                                    foreach (ulong dcChannel in Config.Pornhub.ChannelsToPostTo)
-                                        await (await this.client.GetChannelAsync(dcChannel)).SendMessageAsync(
-                                            embed: builder.Build());
-                                }
-                            }
-
-                            thrownError = false;
-                            await Task.Delay(10000);
-                        }
-                        catch
-                        {
-                            thrownError = true;
-                            Console.WriteLine("Error in Pornhub Module. Waiting 10s");
-                            await Task.Delay(10000);
+                                case "https://www.pornhub.com":
+                                    newestVideo = await GetNewestPornhubVideo(link.Identification);
+                                    break;
                         }
 
-                        await Task.Delay(20000);
+                        if (context.IndexedVideo.Any(iv => iv.Identification == newestVideo.ID))
+                        {
+                            await Task.Delay(3000);
+                            continue;
+                        }
+
+                        var creator = await context.Creator.FindAsync(link.CreatorId);
+                        var discordUser = client.GetUserAsync(Convert.ToUInt64(creator.DiscordUserId.Value));
+
+                        IndexedVideo indexedVideo = new IndexedVideo()
+                        {
+                            CreationDate = DateTime.Now,
+                            CreatorId = creator.Id,
+                            Identification = newestVideo.ID,
+                            Link = newestVideo.Url,
+                            PlatformId = platform.Id
+                        };
+
+                        await context.IndexedVideo.AddAsync(indexedVideo);
+
+                        DiscordEmbedBuilder builder = new DiscordEmbedBuilder()
+                        {
+                            Color = DiscordColor.Gold,
+                            Title = $"{newestVideo.Creator} has uploaded a new video!",
+                            Url = newestVideo.Url,
+                            ThumbnailUrl = newestVideo.ImageUrl
+                        };
+
+                        builder.AddField("Title", newestVideo.Title);
+                        if (creator.DiscordUserId != null)
+                        {
+                            builder.AddField("Creator", (await discordUser).Mention);
+                        }
+
+                        var embed = builder.Build();
+
+                        await context.SaveChangesAsync();
+
+                        foreach (var updateChannelId in context.SabrinaSettings.Where(ss => ss.ContentChannel != null).Select(ss => ss.ContentChannel))
+                        {
+                            var updateChannel = await client.GetChannelAsync(Convert.ToUInt64(updateChannelId));
+
+                            await client.SendMessageAsync(updateChannel, embed: embed);
+                        }
                     }
-                    while (thrownError);
+                }
+                await Task.Delay(120000);
+            }
+        }
 
-                    await Task.Delay(50000);
+        private async Task<Video> GetNewestPornhubVideo(string userName)
+        {
+            Video newestVideo = null;
+
+            try
+            {
+                string url = $"https://www.pornhub.com/users/{userName}/videos";
+                var request = (HttpWebRequest)HttpWebRequest.Create(url);
+                request.CookieContainer = new CookieContainer();
+                request.CachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+                request.Accept =
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
+                request.Method = "GET";
+                request.UserAgent =
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36";
+
+                var data = (await request.GetResponseAsync()).GetResponseStream();
+                var doc = new HtmlDocument();
+                doc.Load(data);
+
+                var node = doc.DocumentNode.SelectSingleNode(
+                    "//*[@class=\"videos row-3-thumbs\"]/li[1]/div/div[1]/div/a");
+                if (node == null)
+                {
+                    return null;
                 }
 
-                await Task.Delay(60000);
+                string id = node.GetAttributeValue("href", string.Empty).Split(new string[] {"?viewkey="}, StringSplitOptions.RemoveEmptyEntries)[1];
+                newestVideo = await Video.FromPornhubId(id);
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+
+            return newestVideo;
         }
     }
 
@@ -149,56 +152,47 @@ namespace Sabrina.Pornhub
 
         public string Url;
 
-        public static async Task<Video[]> LoadAll()
+        public string ID;
+
+        public static async Task<Video> FromPornhubId(string id)
         {
-            var videos = new List<Video>();
+            var request = (HttpWebRequest)HttpWebRequest.Create($"https://www.pornhub.com/view_video.php?viewkey={id}");
+            request.CookieContainer = new CookieContainer();
+            request.CachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+            request.Accept =
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
+            request.Method = "GET";
+            request.UserAgent =
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36";
 
-            using (var conn = new SqlConnection(Config.DataBaseConnectionString))
+            var data = (await request.GetResponseAsync()).GetResponseStream();
+            var doc = new HtmlDocument();
+            doc.Load(data);
+
+            var titleNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:title").FirstOrDefault();
+            var imageNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:image").FirstOrDefault();
+            var test = doc.DocumentNode.Descendants("div")
+                .Where(d => d.GetAttributeValue("class", "") == "video-detailed-info").First();
+            var userName = doc.DocumentNode.Descendants("div")
+                .Where(d => d.GetAttributeValue("class", "") == "video-detailed-info").First().Descendants("a").First()
+                .InnerText;
+
+            if (titleNode == null || imageNode == null)
             {
-                await conn.OpenAsync();
-
-                var cmd = new SqlCommand();
-
-                cmd = new SqlCommand("SELECT ID, URL, Creator, Date, ImageUrl, Title FROM PornhubVideos", conn);
-
-                var reader = await cmd.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
-                    videos.Add(
-                        new Video
-                        {
-                            CreationDate = DateTime.Parse(reader["Date"].ToString()),
-                            Creator = reader["Creator"].ToString(),
-                            ImageUrl = reader["ImageUrl"].ToString(),
-                            Title = reader["Title"].ToString(),
-                            Url = reader["URL"].ToString()
-                        });
+                return null;
             }
 
-            return videos.ToArray();
-        }
-
-        public async Task Save()
-        {
-            using (var conn = new SqlConnection(Config.DataBaseConnectionString))
+            var video = new Video
             {
-                await conn.OpenAsync();
+                Url = $"https://www.pornhub.com/view_video.php?viewkey={id}",
+                Creator = userName,
+                CreationDate = DateTime.Now,
+                ImageUrl = imageNode.GetAttributeValue("content", string.Empty),
+                Title = titleNode.GetAttributeValue("content", string.Empty),
+                ID = id
+            };
 
-                var cmd = new SqlCommand();
-
-                cmd = new SqlCommand(
-                    "IF NOT EXISTS (SELECT * FROM PornhubVideos WHERE URL = @Url)"
-                    + "  INSERT INTO PornhubVideos (Date, Creator, ImageUrl, Title, URL) VALUES (@Date, @Creator, @ImageUrl, @Title, @Url)",
-                    conn);
-
-                cmd.Parameters.Add("@Date", SqlDbType.DateTime).Value = this.CreationDate;
-                cmd.Parameters.Add("@Creator", SqlDbType.NVarChar).Value = this.Creator;
-                cmd.Parameters.Add("@ImageUrl", SqlDbType.NVarChar).Value = this.ImageUrl;
-                cmd.Parameters.Add("@Title", SqlDbType.NVarChar).Value = this.Title;
-                cmd.Parameters.Add("@Url", SqlDbType.NVarChar).Value = this.Url;
-
-                await cmd.ExecuteNonQueryAsync();
-            }
+            return video;
         }
     }
 }

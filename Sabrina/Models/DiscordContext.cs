@@ -1,4 +1,5 @@
 ﻿using System;
+using Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -16,11 +17,15 @@ namespace Sabrina.Models
         }
 
         public virtual DbSet<Boost> Boost { get; set; }
+        public virtual DbSet<Creator> Creator { get; set; }
+        public virtual DbSet<CreatorPlatformLink> CreatorPlatformLink { get; set; }
         public virtual DbSet<DungeonMob> DungeonMob { get; set; }
         public virtual DbSet<DungeonRoomEnterMessage> DungeonRoomEnterMessage { get; set; }
         public virtual DbSet<DungeonSession> DungeonSession { get; set; }
         public virtual DbSet<DungeonText> DungeonText { get; set; }
         public virtual DbSet<DungeonVariable> DungeonVariable { get; set; }
+        public virtual DbSet<IndexedVideo> IndexedVideo { get; set; }
+        public virtual DbSet<Joiplatform> Joiplatform { get; set; }
         public virtual DbSet<KinkHashes> KinkHashes { get; set; }
         public virtual DbSet<Messages> Messages { get; set; }
         public virtual DbSet<PornhubVideos> PornhubVideos { get; set; }
@@ -36,7 +41,7 @@ namespace Sabrina.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer($"Server=joidb.ddns.net;Database=Discord;user id=DiscordUser;password={DBPassword.Password}");
+                optionsBuilder.UseSqlServer(Config.DataBaseConnectionString);
             }
         }
 
@@ -47,6 +52,38 @@ namespace Sabrina.Models
                 entity.Property(e => e.Id).HasColumnName("ID");
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<Creator>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.DiscordUserId).HasColumnName("DiscordUserID");
+
+                entity.Property(e => e.Name).IsRequired();
+            });
+
+            modelBuilder.Entity<CreatorPlatformLink>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.CreatorId).HasColumnName("CreatorID");
+
+                entity.Property(e => e.Identification).IsRequired();
+
+                entity.Property(e => e.PlatformId).HasColumnName("PlatformID");
+
+                entity.HasOne(d => d.Creator)
+                    .WithMany(p => p.CreatorPlatformLink)
+                    .HasForeignKey(d => d.CreatorId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CreatorPlatformLink_Creator");
+
+                entity.HasOne(d => d.Platform)
+                    .WithMany(p => p.CreatorPlatformLink)
+                    .HasForeignKey(d => d.PlatformId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CreatorPlatformLink_JOIPlatform");
             });
 
             modelBuilder.Entity<DungeonMob>(entity =>
@@ -118,6 +155,38 @@ namespace Sabrina.Models
                     .HasForeignKey(d => d.TextId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Dungeon.Variables_Dungeon.Variables");
+            });
+
+            modelBuilder.Entity<IndexedVideo>(entity =>
+            {
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.CreationDate).HasColumnType("datetime");
+
+                entity.Property(e => e.CreatorId).HasColumnName("CreatorID");
+
+                entity.Property(e => e.Link).IsRequired();
+
+                entity.Property(e => e.PlatformId).HasColumnName("PlatformID");
+
+                entity.HasOne(d => d.Creator)
+                    .WithMany(p => p.IndexedVideo)
+                    .HasForeignKey(d => d.CreatorId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_IndexedVideo_Creator");
+
+                entity.HasOne(d => d.Platform)
+                    .WithMany(p => p.IndexedVideo)
+                    .HasForeignKey(d => d.PlatformId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_IndexedVideo_JOIPlatform");
+            });
+
+            modelBuilder.Entity<Joiplatform>(entity =>
+            {
+                entity.ToTable("JOIPlatform");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
             });
 
             modelBuilder.Entity<KinkHashes>(entity =>
