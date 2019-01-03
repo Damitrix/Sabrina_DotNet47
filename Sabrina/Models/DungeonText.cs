@@ -15,6 +15,6 @@ namespace Sabrina.Models
         public int RoomType { get; set; }
         public int TextType { get; set; }
 
-        public ICollection<DungeonVariable> DungeonVariable { get; set; }
+        public virtual ICollection<DungeonVariable> DungeonVariable { get; set; }
     }
 }

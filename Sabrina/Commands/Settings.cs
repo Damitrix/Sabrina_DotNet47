@@ -42,7 +42,7 @@ namespace Sabrina.Commands
 
         private DiscordContext _context;
 
-        public Settings(DiscordContext context)
+        public Settings()
         {
             _context = new DiscordContext();
         }

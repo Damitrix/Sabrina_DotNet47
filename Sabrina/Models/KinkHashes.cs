@@ -10,6 +10,6 @@ namespace Sabrina.Models
         public int? Privacy { get; set; }
         public string KinkList { get; set; }
 
-        public Users User { get; set; }
+        public virtual Users User { get; set; }
     }
 }

@@ -1,5 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.props" Condition="Exists('packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.props')" />
+  <Import Project="packages\Microsoft.ML.CpuMath.0.8.0\build\netstandard2.0\Microsoft.ML.CpuMath.props" Condition="Exists('packages\Microsoft.ML.CpuMath.0.8.0\build\netstandard2.0\Microsoft.ML.CpuMath.props')" />
   <Import Project="packages\Microsoft.EntityFrameworkCore.Design.2.2.0\build\net461\Microsoft.EntityFrameworkCore.Design.props" Condition="Exists('packages\Microsoft.EntityFrameworkCore.Design.2.2.0\build\net461\Microsoft.EntityFrameworkCore.Design.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -53,6 +55,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -103,6 +106,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Sabrina.Program</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DSharpPlus, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
@@ -175,15 +184,66 @@
     <Reference Include="Microsoft.Extensions.Primitives, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Extensions.Primitives.2.2.0\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.ML.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Api.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.CpuMath, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.CpuMath.0.8.0\lib\netstandard2.0\Microsoft.ML.CpuMath.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Ensemble, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Ensemble.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.FastTree, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.FastTree.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.KMeansClustering, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.KMeansClustering.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Legacy, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Legacy.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Maml, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Maml.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.PCA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.PCA.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.ResultProcessor, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.ResultProcessor.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.SamplesUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.SamplesUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.StandardLearners, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.StandardLearners.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Sweeper, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Sweeper.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ML.Transforms, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ML.0.8.0\lib\netstandard2.0\Microsoft.ML.Transforms.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Remotion.Linq, Version=2.2.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
       <HintPath>packages\Remotion.Linq.2.2.0\lib\net45\Remotion.Linq.dll</HintPath>
     </Reference>
+    <Reference Include="SkiaSharp, Version=1.68.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>packages\SkiaSharp.1.68.0\lib\net45\SkiaSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.CodeDom, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.CodeDom.4.5.0\lib\net461\System.CodeDom.dll</HintPath>
     </Reference>
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
@@ -252,6 +312,9 @@
       <HintPath>packages\System.Security.Cryptography.X509Certificates.4.3.2\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.6.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Threading.Tasks.Dataflow.4.9.0\lib\netstandard2.0\System.Threading.Tasks.Dataflow.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -261,6 +324,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bots\HelpBot.cs" />
+    <Compile Include="Bots\SankakuBot.cs" />
     <Compile Include="Bots\TumblrBot.cs" />
     <Compile Include="Commands\Edges.cs" />
     <Compile Include="Commands\ExternalAPI.cs" />
@@ -300,6 +364,7 @@
     <Compile Include="Models\DungeonSession.cs" />
     <Compile Include="Models\DungeonText.cs" />
     <Compile Include="Models\DungeonVariable.cs" />
+    <Compile Include="Models\Finisher.cs" />
     <Compile Include="Models\IndexedVideo.cs" />
     <Compile Include="Models\Joiplatform.cs" />
     <Compile Include="Models\KinkHashes.cs" />
@@ -307,6 +372,12 @@
     <Compile Include="Models\PornhubVideos.cs" />
     <Compile Include="Models\Puns.cs" />
     <Compile Include="Models\SabrinaSettings.cs" />
+    <Compile Include="Models\SankakuImage.cs" />
+    <Compile Include="Models\SankakuImageTag.cs" />
+    <Compile Include="Models\SankakuImageVote.cs" />
+    <Compile Include="Models\SankakuPost.cs" />
+    <Compile Include="Models\SankakuTag.cs" />
+    <Compile Include="Models\SankakuTagBlacklist.cs" />
     <Compile Include="Models\Slavereports.cs" />
     <Compile Include="Models\TumblrPosts.cs" />
     <Compile Include="Models\Users.cs" />
@@ -357,5 +428,11 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\Microsoft.EntityFrameworkCore.Design.2.2.0\build\net461\Microsoft.EntityFrameworkCore.Design.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.EntityFrameworkCore.Design.2.2.0\build\net461\Microsoft.EntityFrameworkCore.Design.props'))" />
+    <Error Condition="!Exists('packages\SkiaSharp.1.68.0\build\net45\SkiaSharp.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\SkiaSharp.1.68.0\build\net45\SkiaSharp.targets'))" />
+    <Error Condition="!Exists('packages\Microsoft.ML.CpuMath.0.8.0\build\netstandard2.0\Microsoft.ML.CpuMath.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.ML.CpuMath.0.8.0\build\netstandard2.0\Microsoft.ML.CpuMath.props'))" />
+    <Error Condition="!Exists('packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.props'))" />
+    <Error Condition="!Exists('packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.targets'))" />
   </Target>
+  <Import Project="packages\SkiaSharp.1.68.0\build\net45\SkiaSharp.targets" Condition="Exists('packages\SkiaSharp.1.68.0\build\net45\SkiaSharp.targets')" />
+  <Import Project="packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.targets" Condition="Exists('packages\Microsoft.ML.0.8.0\build\netstandard2.0\Microsoft.ML.targets')" />
 </Project>

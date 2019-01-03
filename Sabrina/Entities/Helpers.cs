@@ -7,9 +7,12 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Net;
+
 namespace Sabrina.Entities
 {
     using System;
+    using System.Net.Cache;
     using System.Security.Cryptography;
 
     /// <summary>
@@ -45,6 +48,20 @@ namespace Sabrina.Entities
                 return (int)(min + (max - min) *
                              (scale / (double)uint.MaxValue));
             }
+        }
+
+        public static HttpWebRequest CreateRequestWithHeaders(string url)
+        {
+            HttpWebRequest request =
+                HttpWebRequest.CreateHttp(url);
+            request.CachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+            request.Accept =
+                "text/html,*/*";
+            request.Method = "GET";
+            request.UserAgent =
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36";
+
+            return request;
         }
     }
 }

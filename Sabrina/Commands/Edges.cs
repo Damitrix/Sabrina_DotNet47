@@ -11,7 +11,7 @@ namespace Sabrina.Commands
     {
         private DiscordContext _context;
 
-        public Edges(DiscordContext context)
+        public Edges()
         {
             _context = new DiscordContext();
         }

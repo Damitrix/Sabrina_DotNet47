@@ -12,7 +12,7 @@ namespace Sabrina.Models
         public DateTime? CreationDate { get; set; }
         public string Identification { get; set; }
 
-        public Creator Creator { get; set; }
-        public Joiplatform Platform { get; set; }
+        public virtual Creator Creator { get; set; }
+        public virtual Joiplatform Platform { get; set; }
     }
 }

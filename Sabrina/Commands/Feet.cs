@@ -77,5 +77,42 @@ namespace Sabrina.Commands
             });
             await context.SaveChangesAsync();
         }
+
+        [Command("boostDL"), Description("Posts some more Feet. Can be used 4 times a day")]
+        public async Task BoostDeepLearningFeetPics(CommandContext ctx)
+        {
+            var context = new DiscordContext();
+
+            var minTime = DateTime.Now - TimeSpan.FromHours(6);
+            var boosts = context.Boost.Where(b => b.Date > minTime && (b.Channel == null || b.Channel == Convert.ToInt64(ctx.Channel.Id)));
+
+            if (await boosts.CountAsync() > 4)
+            {
+                await ctx.RespondAsync($"You have to wait before boosting again. Next one is available in {(TimeSpan.FromHours(6) - (DateTime.Now - boosts.Last().Date)).TotalMinutes} minutes.");
+                return;
+            }
+
+            var sabrinaSettings = await context.SabrinaSettings.FindAsync(Convert.ToInt64(ctx.Guild.Id));
+
+            if (sabrinaSettings.FeetChannel == null)
+            {
+                sabrinaSettings.FeetChannel = Convert.ToInt64(ctx.Channel.Id);
+            }
+
+            var channel = await ctx.Client.GetChannelAsync(Convert.ToUInt64(sabrinaSettings.FeetChannel));
+
+            if (sabrinaSettings.FeetChannel.Value != Convert.ToInt64(ctx.Channel.Id))
+            {
+                await ctx.RespondAsync($"You cannot issue this command from this Channel. Please use {channel.Mention}");
+                return;
+            }
+
+            var picsToPost = Helpers.RandomGenerator.RandomInt(2, 5);
+            Parallel.For(0, picsToPost,async i =>
+            {
+                await Task.Run(async () => await SankakuBot.PostRandom(channel, i));
+                //await SankakuBot.PostPrediction(Convert.ToInt64(ctx.User.Id) ,channel);
+            });
+        }
     }
 }

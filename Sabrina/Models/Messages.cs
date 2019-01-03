@@ -11,6 +11,6 @@ namespace Sabrina.Models
         public long ChannelId { get; set; }
         public DateTime CreationDate { get; set; }
 
-        public Users Author { get; set; }
+        public virtual Users Author { get; set; }
     }
 }

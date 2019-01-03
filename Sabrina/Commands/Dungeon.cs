@@ -17,7 +17,7 @@ namespace Sabrina.Commands
     [Group("dungeon")]
     internal class Dungeon
     {
-        private readonly DiscordContext _context = new DiscordContext();
+        private readonly DiscordContext _context;
 
         public Dungeon()
         {

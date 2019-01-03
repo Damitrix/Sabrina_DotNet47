@@ -10,6 +10,6 @@ namespace Sabrina.Models
         public int Position { get; set; }
         public int Type { get; set; }
 
-        public DungeonText Text { get; set; }
+        public virtual DungeonText Text { get; set; }
     }
 }

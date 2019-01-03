@@ -23,7 +23,7 @@ namespace Sabrina.Commands
         private const string YesRegex = "[Yy][Ee]?[Ss]?";
         private readonly DiscordContext _context;
 
-        public Game(DiscordContext context)
+        public Game()
         {
             _context = new DiscordContext();
         }

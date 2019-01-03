@@ -11,6 +11,6 @@ namespace Sabrina.Models
         public int? DungeonDifficulty { get; set; }
         public int? DungeonLevel { get; set; }
 
-        public Users User { get; set; }
+        public virtual Users User { get; set; }
     }
 }

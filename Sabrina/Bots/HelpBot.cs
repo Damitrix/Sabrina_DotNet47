@@ -13,18 +13,23 @@ namespace Sabrina.Bots
     internal class HelpBot
     {
         private readonly DiscordClient _client;
-        private readonly DiscordContext _context;
 
         private Timer _helpPostTimer;
 
         public HelpBot(DiscordClient client)
         {
-            _context = new DiscordContext();
             _client = client;
 
             //SendPatreonUpdateOnce().GetAwaiter().GetResult();
 
-            SetTimer();
+            _helpPostTimer = new Timer(TimeSpan.FromMinutes(30).TotalMilliseconds)
+            {
+                AutoReset = true
+            };
+            _helpPostTimer.Elapsed += async (object sender, ElapsedEventArgs e) => await OnTimerElapse();
+            _helpPostTimer.Start();
+
+            Task.Run(OnTimerElapse);
         }
 
         private async Task SendPatreonUpdateOnce()
@@ -64,11 +69,14 @@ namespace Sabrina.Bots
 
         private async Task OnTimerElapse()
         {
-            foreach (var channelId in _context.SabrinaSettings.Select(s => s.WheelChannel))
+            var context = new DiscordContext();
+            var now = DateTime.Now;
+
+            foreach (var setting in context.SabrinaSettings)
             {
-                if (channelId != null)
+                if (setting.WheelChannel != null && setting.LastWheelHelpPost == null || setting.LastWheelHelpPost < now - TimeSpan.FromDays(1))
                 {
-                    var channel = await _client.GetChannelAsync(Convert.ToUInt64(channelId));
+                    var channel = await _client.GetChannelAsync(Convert.ToUInt64(setting.WheelChannel.Value));
 
                     DiscordEmbedBuilder builder = new DiscordEmbedBuilder
                     {
@@ -80,23 +88,23 @@ namespace Sabrina.Bots
                         },
                         Color = DiscordColor.VeryDarkGray,
                         Description =
-                    "Hey Guys and Gals, i'm Sabrina. Since Mistress can't tend to every single one of your pathetic little needs, i'm here to help her out." +
-                    Environment.NewLine +
-                    "I've got a bunch of neat little Commands to ~~torture~~ help you. You'll probably only ever need 3 though." +
-                    Environment.NewLine + Environment.NewLine +
-                    "``//orgasmwheel``" + Environment.NewLine +
-                    "Use this, to spin the \"Wheel of Misfortune\". It contains fun little Tasks and \"Rewards\", that Mistress Aki herself has created. " +
-                    "(That means, if you're unhappy with your outcome, you know where to complain.... if you dare to.)" +
-                    Environment.NewLine + Environment.NewLine +
-                    "``//denialtime``" + Environment.NewLine +
-                    "This will show you, when exactly " + Environment.NewLine +
-                    "    a) You are able to spin again" + Environment.NewLine +
-                    "    b) You are not denied anymore" + Environment.NewLine +
-                    "Which means, that you may spin the wheel while denied. But that also means, that you can also not be denied, while being excluded from the wheel." +
-                    Environment.NewLine + Environment.NewLine +
-                    "``//settings setup``" +
-                    Environment.NewLine +
-                    "When you issue this command, i will assist you with setting up the difficulty of the wheel and other stuffs. Just wait for my dm.",
+                            "Hey Guys and Gals, i'm Sabrina. Since Mistress can't tend to every single one of your pathetic little needs, i'm here to help her out." +
+                            Environment.NewLine +
+                            "I've got a bunch of neat little Commands to ~~torture~~ help you. You'll probably only ever need 3 though." +
+                            Environment.NewLine + Environment.NewLine +
+                            "``//orgasmwheel``" + Environment.NewLine +
+                            "Use this, to spin the \"Wheel of Misfortune\". It contains fun little Tasks and \"Rewards\", that Mistress Aki herself has created. " +
+                            "(That means, if you're unhappy with your outcome, you know where to complain.... if you dare to.)" +
+                            Environment.NewLine + Environment.NewLine +
+                            "``//denialtime``" + Environment.NewLine +
+                            "This will show you, when exactly " + Environment.NewLine +
+                            "    a) You are able to spin again" + Environment.NewLine +
+                            "    b) You are not denied anymore" + Environment.NewLine +
+                            "Which means, that you may spin the wheel while denied. But that also means, that you can also not be denied, while being excluded from the wheel." +
+                            Environment.NewLine + Environment.NewLine +
+                            "``//settings setup``" +
+                            Environment.NewLine +
+                            "When you issue this command, i will assist you with setting up the difficulty of the wheel and other stuffs. Just wait for my dm.",
                         Title = "Introduction",
                         Footer = new DiscordEmbedBuilder.EmbedFooter()
                         {
@@ -107,35 +115,46 @@ namespace Sabrina.Bots
 
                     await channel.SendMessageAsync(embed: builder.Build());
 
-                    (await _context.SabrinaSettings.FirstAsync()).LastWheelHelpPost = DateTime.Now;
-                    await _context.SaveChangesAsync();
-                    SetTimer();
+                    setting.LastWheelHelpPost = DateTime.Now;
+                }
+
+                if (setting.FeetChannel != null && setting.LastDeepLearningPost == null || setting.LastDeepLearningPost < now - TimeSpan.FromDays(1))
+                {
+                    var channel = await _client.GetChannelAsync(Convert.ToUInt64(setting.FeetChannel.Value));
+
+                    DiscordEmbedBuilder builder = new DiscordEmbedBuilder
+                    {
+                        Author = new DiscordEmbedBuilder.EmbedAuthor
+                        {
+                            IconUrl =
+                        "https://cdn.discordapp.com/avatars/450771319479599114/d7dd3e2ec296542f170e84c264de78ce.png",
+                            Name = "Sabrina"
+                        },
+                        Color = DiscordColor.VeryDarkGray,
+                        Description =
+                            "Heyo, it's me! Your beloved Sabrina!" + Environment.NewLine +
+                            "For the slow ones of you: I'm posting a neat little Picture here every now and then." + Environment.NewLine + Environment.NewLine +
+                            "Since i can't read minds, i'd love for you, to upvote the pictures you like." + Environment.NewLine +
+                            "Why?" + Environment.NewLine +
+                            "Well, smartypants, if i feel confident enough about your preferences, i'll start posting pictures specifically chosen for you! <3"
+                            + Environment.NewLine + Environment.NewLine
+                            //+ "You can also get your fix a little earlier, by using the command ``//boostDL``"
+                            ,
+                        Title = "Introduction",
+                        Footer = new DiscordEmbedBuilder.EmbedFooter()
+                        {
+                            IconUrl = "https://cdn.discordapp.com/avatars/249216025931939841/a_94cf2ac609424257706d6a611f5dd7aa.gif",
+                            Text = "If something doesn't seem right, please complain to Salem :)"
+                        }
+                    };
+
+                    await channel.SendMessageAsync(embed: builder.Build());
+
+                    setting.LastDeepLearningPost = DateTime.Now;
                 }
             }
-        }
 
-        private void SetTimer()
-        {
-            DateTime? lastHelpPost = _context.SabrinaSettings.First().LastWheelHelpPost;
-            TimeSpan nextPost = new TimeSpan();
-
-            if (lastHelpPost != null)
-            {
-                nextPost = (TimeSpan.FromDays(1) - (DateTime.Now - lastHelpPost)).Value;
-            }
-            else
-            {
-                nextPost = TimeSpan.FromMilliseconds(1);
-            }
-
-            _helpPostTimer = new Timer
-            {
-                AutoReset = false,
-                Enabled = true,
-                Interval = nextPost.TotalMilliseconds
-            };
-            _helpPostTimer.Elapsed += async (sender, args) => await OnTimerElapse();
-            _helpPostTimer.Start();
+            await context.SaveChangesAsync();
         }
     }
 }

@@ -50,7 +50,7 @@ namespace Sabrina.Pornhub
                                     break;
                         }
 
-                        if (context.IndexedVideo.Any(iv => iv.Identification == newestVideo.ID))
+                        if (newestVideo == null || context.IndexedVideo.Any(iv => iv.Identification == newestVideo.ID))
                         {
                             await Task.Delay(3000);
                             continue;
@@ -168,6 +168,14 @@ namespace Sabrina.Pornhub
             var data = (await request.GetResponseAsync()).GetResponseStream();
             var doc = new HtmlDocument();
             doc.Load(data);
+
+            var metaNodes = doc.DocumentNode.SelectNodes("/html/head/meta");
+
+            if (metaNodes == null || !metaNodes.Any())
+            {
+                //Refresh Cookie or something, dunno
+                return null;
+            }
 
             var titleNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:title").FirstOrDefault();
             var imageNode = doc.DocumentNode.SelectNodes("/html/head/meta").Where(e => e.Attributes["property"]?.Value == "og:image").FirstOrDefault();

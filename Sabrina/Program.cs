@@ -79,16 +79,17 @@ namespace Sabrina
             this.client.MessageReactionAdded += this.ClientMessageReactionAdded;
             this.client.GuildMemberUpdated += this.ClientGuildMemberUpdated;
 
-            this.conn = new SqlConnection(Config.DataBaseConnectionString);
+            this.conn = new SqlConnection(Config.DatabaseConnectionString);
             await this.conn.OpenAsync();
 
             await this.client.UpdateStatusAsync(new DiscordGame("Feetsies"), UserStatus.Online);
 
             // TODO: Looks weird, cause unused.
+            SankakuBot sankakuBot = new SankakuBot(this.client);
             PornhubBot pornhubBot = new PornhubBot(this.client);
             HelpBot helpBot = new HelpBot(this.client);
 
-            this.tmblrBot = new TumblrBot(this.client, _context);
+            this.tmblrBot = new TumblrBot(this.client);
 
             var exit = false;
             while (!exit)
@@ -165,6 +166,7 @@ namespace Sabrina
             }
             catch (Exception ex)
             {
+                Console.WriteLine("Error trying to enter Message into Database");
                 Console.WriteLine(ex.Message);
             }
         }
@@ -237,15 +239,7 @@ namespace Sabrina
                 StringPrefix = Prefix,
             };
 
-            var colBuilder = new DependencyCollectionBuilder();
-
-            _context = new DiscordContext(new Microsoft.EntityFrameworkCore.DbContextOptions<DiscordContext>());
-            colBuilder.AddInstance(_context);
-
-            Console.WriteLine(_context.Users.First().UserId);
-
-            ccfg.Dependencies = colBuilder.Build();
-
+            this._context = new DiscordContext();
             this.Commands = this.client.UseCommandsNext(ccfg);
 
             foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && t.Namespace == "Sabrina.Commands" && t.DeclaringType == null))

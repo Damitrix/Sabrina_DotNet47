@@ -9,6 +9,7 @@ namespace Sabrina.Models
         {
             DungeonSession = new HashSet<DungeonSession>();
             Messages = new HashSet<Messages>();
+            SankakuImageVote = new HashSet<SankakuImageVote>();
             Slavereports = new HashSet<Slavereports>();
         }
 
@@ -26,10 +27,11 @@ namespace Sabrina.Models
         public int? WalletEdges { get; set; }
         public int? TotalEdges { get; set; }
 
-        public KinkHashes KinkHashes { get; set; }
-        public UserSettings UserSettings { get; set; }
-        public ICollection<DungeonSession> DungeonSession { get; set; }
-        public ICollection<Messages> Messages { get; set; }
-        public ICollection<Slavereports> Slavereports { get; set; }
+        public virtual KinkHashes KinkHashes { get; set; }
+        public virtual UserSettings UserSettings { get; set; }
+        public virtual ICollection<DungeonSession> DungeonSession { get; set; }
+        public virtual ICollection<Messages> Messages { get; set; }
+        public virtual ICollection<SankakuImageVote> SankakuImageVote { get; set; }
+        public virtual ICollection<Slavereports> Slavereports { get; set; }
     }
 }

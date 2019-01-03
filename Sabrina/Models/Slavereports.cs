@@ -12,6 +12,6 @@ namespace Sabrina.Models
         public string SessionOutcome { get; set; }
         public long TimeSpan { get; set; }
 
-        public Users User { get; set; }
+        public virtual Users User { get; set; }
     }
 }

@@ -30,30 +30,18 @@ namespace Sabrina.Bots
     internal class TumblrBot
     {
         private readonly DiscordClient _client;
-        private DiscordContext _context;
         private Timer _postTimer;
-        private DiscordContext _updateContext;
         private Timer _updateTimer;
 
-        public TumblrBot(DiscordClient client, DiscordContext context)
+        public TumblrBot(DiscordClient client)
         {
-            _context = new DiscordContext();
-            _updateContext = new DiscordContext();
             _client = client;
             _postTimer = new Timer(TimeSpan.FromMinutes(1).TotalMilliseconds)
             {
                 AutoReset = true
             };
             _postTimer.Elapsed += _postTimer_Elapsed;
-            _postTimer.Start();
-            _updateTimer = new Timer(TimeSpan.FromMinutes(30).TotalMilliseconds)
-            {
-                AutoReset = true
-            };
-            _updateTimer.Elapsed += _updateTimer_Elapsed;
-            _updateTimer.Start();
-
-            Task.Run(async () => await UpdateDatabase());
+            //_postTimer.Start();
         }
 
         public static async Task PostRandom(DiscordClient client, DiscordContext context, DiscordChannel[] channels)
@@ -220,7 +208,9 @@ namespace Sabrina.Bots
 
         private async void _postTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            var lastPost = _context.SabrinaSettings.First().LastTumblrPost;
+            var context = new DiscordContext();
+
+            var lastPost = context.SabrinaSettings.First().LastTumblrPost;
             if (lastPost != null && lastPost > DateTime.Now - TimeSpan.FromHours(2))
             {
                 return;
@@ -228,8 +218,8 @@ namespace Sabrina.Bots
 
             await PostRandom();
 
-            _context.SabrinaSettings.First().LastTumblrPost = DateTime.Now;
-            await _context.SaveChangesAsync();
+            context.SabrinaSettings.First().LastTumblrPost = DateTime.Now;
+            await context.SaveChangesAsync();
         }
 
         private async void _updateTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -239,17 +229,21 @@ namespace Sabrina.Bots
 
         private async Task PostRandom()
         {
-            var channels = _context.SabrinaSettings.Where(ss => ss.FeetChannel != null).AsEnumerable().Select(async ss => await _client.GetChannelAsync(Convert.ToUInt64(ss.FeetChannel))).ToArray();
+            var context = new DiscordContext();
+
+            var channels = context.SabrinaSettings.Where(ss => ss.FeetChannel != null).AsEnumerable().Select(async ss => await _client.GetChannelAsync(Convert.ToUInt64(ss.FeetChannel))).ToArray();
             Task.WaitAll(channels);
-            await PostRandom(_client, _context, channels.Select(t => t.Result).ToArray());
+            await PostRandom(_client, context, channels.Select(t => t.Result).ToArray());
         }
 
         private async Task UpdateDatabase()
         {
+            var context = new DiscordContext();
+
             DateTime? lastUpdate = DateTime.Now;
             try
             {
-                lastUpdate = _updateContext.SabrinaSettings.First().LastTumblrUpdate;
+                lastUpdate = context.SabrinaSettings.First().LastTumblrUpdate;
             }
             catch (Exception ex)
             {
@@ -272,9 +266,9 @@ namespace Sabrina.Bots
 
                 foreach (var post in posts.Response.Posts)
                 {
-                    if (!_updateContext.TumblrPosts.Any(tPost => tPost.TumblrId == post.Id))
+                    if (!context.TumblrPosts.Any(tPost => tPost.TumblrId == post.Id))
                     {
-                        await _updateContext.TumblrPosts.AddAsync(new TumblrPosts()
+                        await context.TumblrPosts.AddAsync(new TumblrPosts()
                         {
                             TumblrId = post.Id,
                             IsLoli = -1,
@@ -286,8 +280,8 @@ namespace Sabrina.Bots
                 offset += posts.Response.Posts.Length;
             }
 
-            _updateContext.SabrinaSettings.First().LastTumblrUpdate = DateTime.Now;
-            await _updateContext.SaveChangesAsync();
+            context.SabrinaSettings.First().LastTumblrUpdate = DateTime.Now;
+            await context.SaveChangesAsync();
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Sabrina.Commands
     {
         private DiscordContext _context;
 
-        public SlaveInstructions(DiscordContext context)
+        public SlaveInstructions()
         {
             _context = new DiscordContext();
         }

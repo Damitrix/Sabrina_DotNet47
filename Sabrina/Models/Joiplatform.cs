@@ -17,7 +17,7 @@ namespace Sabrina.Models
         public string VideoIndexRoute { get; set; }
         public string VideoRoute { get; set; }
 
-        public ICollection<CreatorPlatformLink> CreatorPlatformLink { get; set; }
-        public ICollection<IndexedVideo> IndexedVideo { get; set; }
+        public virtual ICollection<CreatorPlatformLink> CreatorPlatformLink { get; set; }
+        public virtual ICollection<IndexedVideo> IndexedVideo { get; set; }
     }
 }

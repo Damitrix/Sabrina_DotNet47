@@ -8,6 +8,7 @@ namespace Sabrina.Models
         public Creator()
         {
             CreatorPlatformLink = new HashSet<CreatorPlatformLink>();
+            Finisher = new HashSet<Finisher>();
             IndexedVideo = new HashSet<IndexedVideo>();
         }
 
@@ -15,7 +16,8 @@ namespace Sabrina.Models
         public long? DiscordUserId { get; set; }
         public string Name { get; set; }
 
-        public ICollection<CreatorPlatformLink> CreatorPlatformLink { get; set; }
-        public ICollection<IndexedVideo> IndexedVideo { get; set; }
+        public virtual ICollection<CreatorPlatformLink> CreatorPlatformLink { get; set; }
+        public virtual ICollection<Finisher> Finisher { get; set; }
+        public virtual ICollection<IndexedVideo> IndexedVideo { get; set; }
     }
 }

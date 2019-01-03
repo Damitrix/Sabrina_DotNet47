@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Configuration
 {
@@ -7,32 +8,88 @@ namespace Configuration
         private static string _cDir;
         private static string CDir => _cDir ?? (_cDir = Directory.GetCurrentDirectory());
 
-        private static string _dbPassword;
-        private static string DBPassword
+        private static string _databaseConnectionString;
+        public static string DatabaseConnectionString
         {
             get
             {
-                if (_dbPassword == null)
+                if (_databaseConnectionString == null)
                 {
-                    _dbPassword = File.ReadAllText(Directory.GetCurrentDirectory() + "/DBPassword.cfg");
+                    Load();
                 }
 
-                return _dbPassword;
+                return _databaseConnectionString;
             }
         }
 
-        public static string DataBaseConnectionString
+        private static string _token;
+        public static string Token
         {
             get
             {
-                return $"Server=joidb.ddns.net;Database=Discord;user id=DiscordUser;password={DBPassword}";
+                if (_token == null)
+                {
+                    Load();
+                }
+
+                return _token;
             }
         }
 
-        public static string Token
+        private static string _sankakuLogin;
+        public static string SankakuLogin
         {
-            get => File.ReadAllText(Directory.GetCurrentDirectory() + "/Token.cfg");
+            get
+            {
+                if (_sankakuLogin == null)
+                {
+                    Load();
+                }
+
+                return _sankakuLogin;
+            }
         }
+
+        private static string _sankakuPassword;
+        public static string SankakuPassword
+        {
+            get
+            {
+                if (_sankakuPassword == null)
+                {
+                    Load();
+                }
+
+                return _sankakuPassword;
+            }
+        }
+
+        public static void Load()
+        {
+            var config = File.ReadAllLines(Directory.GetCurrentDirectory() + "/Config.cfg");
+            foreach (var line in config)
+            {
+                var split = line.Split(new string[] {" = "}, StringSplitOptions.None);
+
+                switch (split[0])
+                {
+                    case "DatabaseConnectionString":
+                        _databaseConnectionString = split[1];
+                        break;
+                    case "Token":
+                        _token = split[1];
+                        break;
+                    case "SankakuLogin":
+                        _sankakuLogin = split[1];
+                        break;
+                    case "SankakuPassword":
+                        _sankakuPassword = split[1];
+                        break;
+                }
+            }
+        }
+
+        
 
         public static class BotFileFolders
         {
@@ -61,10 +118,11 @@ namespace Configuration
         public static class Emojis
         {
             public static string Blush = ":blush:";
-            public static string[] Confirms = new[] { ":white_check_mark:", ":ballot_box_with_check:", ":heavy_check_mark:", ":thumbsup" };
-            public static string[] Declines = new[] { ":negative_squared_cross_mark:", ":x:", ":deletdis:", ":underage:", ":no_entry_sign:" };
-            public static string Heart = ":heart:";
+            public static string[] Confirms = new[] { ":white_check_mark:", ":ballot_box_with_check:", ":heavy_check_mark:", ":thumbsup:", ":+1:", ":arrow_up:", ":arrow_up_small:" };
+            public static string[] Declines = new[] { ":negative_squared_cross_mark:", ":x:", ":no_entry_sign:", ":thumbsdown:", ":-1:", ":arrow_down:", ":arrow_down_small:" };
             public static string Underage = ":underage:";
+            public static string[] Love = new [] { ":heart:", ":blue_heart:", ":green_heart:", ":purple_heart:", ":yellow_heart:" };
+            public static string[] Hate = new [] { ":skull_crossbones:", ":deletdis:" };
         }
 
         public static class Pornhub

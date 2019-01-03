@@ -33,7 +33,7 @@ namespace Sabrina.Commands.KinkList
         [Description("Get Stati of Kinks")]
         public async Task GetValueTask(CommandContext ctx, [Description("Mention your target here.")] DiscordUser user, [Description("Partial or full name of kink. Use \"\" to display all.")] string kinkName)
         {
-            using (var conn = new SqlConnection(Config.DataBaseConnectionString))
+            using (var conn = new SqlConnection(Config.DatabaseConnectionString))
             {
                 await conn.OpenAsync();
 
@@ -132,7 +132,7 @@ namespace Sabrina.Commands.KinkList
 
             string newHash = hash.Trim('`');
 
-            using (var conn = new SqlConnection(Config.DataBaseConnectionString))
+            using (var conn = new SqlConnection(Config.DatabaseConnectionString))
             {
                 await conn.OpenAsync();
 

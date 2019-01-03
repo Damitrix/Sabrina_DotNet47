@@ -10,6 +10,6 @@ namespace Sabrina.Models
         public string DungeonData { get; set; }
         public string RoomGuid { get; set; }
 
-        public Users User { get; set; }
+        public virtual Users User { get; set; }
     }
 }
